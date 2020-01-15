@@ -4,15 +4,15 @@ MAINTAINER YesInteractive- http://yes-interactive.com
 # Install modules and updates
 RUN apk update \
     && apk --no-cache add \
-        openssl=="1.1.1a-r1" \
-        apache2=="2.4.38-r0" \
+        openssl=="1.1.1d-r2" \
+        apache2=="2.4.41-r0" \
         apache2-ssl \
         apache2-http2 \
         git \
 	unzip \
     # Install PHP from community
     && apk --no-cache --repository http://dl-4.alpinelinux.org/alpine/v3.9/community/ add \
-        php7=="7.2.14-r0" \
+        php7=="7.2.26-r0" \
         php7-apache2 \
         php7-bcmath \
         php7-bz2 \
