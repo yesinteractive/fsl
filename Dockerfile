@@ -20,7 +20,6 @@ RUN apk update \
         php7-common \
         php7-ctype \
         php7-curl \
-        php7-dev \
         php7-dom \
         php7-json \
         php7-mbstring \
@@ -68,6 +67,7 @@ RUN apk update \
     && echo '<?php phpinfo(); ?>' >  /app/phpinfo.php \
     && wget https://github.com/yesinteractive/fsl/archive/master.zip -P /app  \
     && unzip /app/master.zip -d /app \
+    && rm -rf /app/master.zip \
     && cp -r /app/fsl-master/. /app \
     && rm -rf /app/fsl-master
 
