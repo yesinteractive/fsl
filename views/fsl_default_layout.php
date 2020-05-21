@@ -29,7 +29,20 @@
 .demorow {
     margin-bottom: 25px;
     //: 200px;
-}</style>
+}
+      
+          @media screen and (min-width:1024px) {
+  .jumbotron   {
+   
+    background-size: contain;
+    background-image: url(<?php echo url_for('/public/fsl.jpeg')?>);
+    background-position: right top;
+    background-repeat: no-repeat;
+            }
+}
+            
+      
+      </style>
     </head>
     <body>
         <nav class="navbar navbar-light navbar-custom ">
@@ -41,8 +54,7 @@
         Version <?php echo option('fsl_version'); ?> </span>
         </nav>         
         <!-- Main jumbotron for a primary marketing message or call to action -->
-        <div class="test jumbotron bg-white" style="margin-bottom: 0px; background-image: url(<?php echo url_for('/public/fsl.jpeg')?>);   background-position: right bottom;
-  background-repeat: no-repeat;">
+        <div class="test jumbotron bg-white" style="margin-bottom: 0px; ">
             <div class="container">
                 <h1 class="display-3">Ahhhhh, refreshing!</h1>
                 <p>Congratulations! Your Fresh Squeezed Limonade installation is up and running. <br>For documentation and updates, visit the project page on Github.</p>

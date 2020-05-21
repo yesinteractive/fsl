@@ -174,6 +174,28 @@ function fsl_jwt_decode($token,$key)
   return JWT::decode($token, $key);
 }
 
+/* 
+ *
+ * get_tiny_url
+ *
+ * Generates a Tiny URL 
+ *
+ * @url (string) url to be shortened
+ * @return (string)  
+ */
+function fsl_get_tiny_url($url)  {  
+	$ch = curl_init();  
+	$timeout = 5;  
+	curl_setopt($ch,CURLOPT_URL,'https://tinyurl.com/api-create.php?url='.$url);  
+	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);  
+	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);  
+	$data = curl_exec($ch);  
+	curl_close($ch);
+  
+	return preg_replace("/^http:/i", "https:", $data);  
+}
+ 
+
 /*
  * fsl_gauth_check
  *

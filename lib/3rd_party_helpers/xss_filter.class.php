@@ -15,7 +15,7 @@ class xss_filter {
 	* @var bool $allow_http_value
 	* @access private
 	*/
-	private $allow_http_value = false;
+	private $allow_http_value = true;
 
 	/**
 	* @var string $input

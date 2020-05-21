@@ -31,10 +31,11 @@ function process_time(){
   {
    $token = array();
    $token['id'] = "test123";
+   $token['name'] = "FSL";
    $testjwt =  fsl_jwt_encode($token, "testkey");
    $jwtdecode = fsl_jwt_decode($testjwt,"testkey");
    $time = number_format( microtime(true) - LIM_START_MICROTIME, 6); 
-    return html("Token To Encode: " . $token['id'] ." <BR>JWT: $testjwt<BR>Decoded JWT: " . $jwtdecode->id . "<BR>". process_time());
+    return html("Token To Encode: " . $token['id'] ." <BR>Key: testkey<BR>JWT: $testjwt<BR>Decoded JWT: " . $jwtdecode->id . "<BR>". process_time());
   }
 
 /*
