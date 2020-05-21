@@ -118,38 +118,7 @@ GET | /showip | showip | Showcases encrypt/decrypt functions
 
 ---
 
-# Original Limonade README
-
-Limonade is a PHP micro framework for rapid web development and prototyping.
-
-It's inspired by frameworks like [Sinatra](http://www.sinatrarb.com/) or [Camping](http://github.com/camping/camping) in Ruby, or [Orbit](http://orbit.luaforge.net/) in Lua. It aims to be simple, lightweight and extremly flexible.
-
-Limonade provides functions that complete the PHP basic set, while keeping consistency with native functions and sitting up on them.
-
-Limonade is easy to learn and provides everything that you can expect from a modern framework (MVC, REST, ...)
-
-
-```php
-    require_once 'lib/limonade.php';
-    dispatch('/', 'hello');
-        function hello()
-        {
-            return 'Hello world!';
-        }
-    run();
-```    
-
-## About this document ##
-
-This document provides a quick, but comprehensive, guide of Limonade features.
-
-For more informations, you can see the [website](http://limonade-php.github.com/), [examples](https://github.com/sofadesign/limonade/wiki/Examples-and-tutorials), and of course the [source code](http://github.com/sofadesign/limonade/blob/master/lib/limonade.php) which is still the best documentation.
-
-A [discussion group](http://groups.google.fr/group/limonade) is also available for more exchanges.
-
-## Requirements ##
-
-* PHP 5.1.6 > (successfully tested with PHP 5.1.6 but it might work with older versions)
+# FSL Concepts
    
 ## Routes ##
 
@@ -1051,16 +1020,4 @@ function before_sending_header($header)
 
 }
 
-
-
-## Testing ##
-
-[TODO]
-
-## More ##
-
-* [Limonade web site](http://limonade-php.github.com/)
-* [Limonade blog](http://limonade.tumblr.com/)
-* [Issue tracking / release planning](http://sofadesign.lighthouseapp.com/projects/29612-limonade/overview)
-* [Support / Discussions](http://groups.google.fr/group/limonade)
 
