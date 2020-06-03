@@ -1,11 +1,9 @@
 ## FSL: Fresh Squeezed Limonade PHP Micro-Framework
 
 
-[![GitHub release](https://img.shields.io/github/release/yesinteractive/fsl.svg)](https://github.com/yesinteractive/fsl) 
-![Packagist](https://img.shields.io/packagist/l/fsl/fsl.svg) ![PHP from Packagist](https://img.shields.io/packagist/php-v/fsl/fsl.svg)
-  [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=FSL:%20Fresh%20Squeezed%20Limonade%20PHP%20Micro-Framework%20for%20Micro-Services%20and%20Rapid%20API%20Development&url=https://github.com/yesinteractive/fsl&hashtags=php,microservices,microframework,webapps,github,developers,webdevelopment,docker)
-
-
+[![GitHub release](https://img.shields.io/github/release/yesinteractive/fsl?style=for-the-badge)](https://github.com/yesinteractive/fsl)
+![MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+![PHP from Packagist](https://img.shields.io/packagist/php-v/fsl/fsl?style=for-the-badge)
 
 
 FSL (Fresh Squeezed Limonade) is Yes Interactive's renergized continuation and adaptation of the abandonded Limonade PHP micro framework project (https://github.com/sofadesign/limonade)
