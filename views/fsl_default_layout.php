@@ -65,8 +65,8 @@
             <div class="container">
                 <pre class="text-white" style="margin-top: 15px;">
 Output:
-
-<?php echo $content ?></pre>
+<code>
+<?php echo $content ?></code></pre>
             </div>
         </div>
         <div class="container">
@@ -76,37 +76,73 @@ Output:
                     <h2>Start Session</h2>
               
                     <p>Launch page and starts a brand new session in FSL.</p>
-                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/')?>" role="button">Try It Now » </a></p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/')?>" role="button">Try It Now » </a> 
+                      <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L14" role="button">See Code <> </a></p>
                     
                 </div>
                 <div class="col-md-4">
                     <h2>Show Session</h2>
                     <p>Displays the current session info as well as the client's IP address. Also showcases the FSL Encrypt and Decrypt functions.</p>
-                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/showip')?>" role="button">Try It Now » </a></p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/showip')?>" role="button">Try It Now » </a>
+                    <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L90" role="button">See Code <> </a></p>
+                  </p>
                 </div>
                 <div class="col-md-4">
                     <h2>Kill Session</h2>
                     <p>Kills current session and also showcases use of URI parameterization.&nbsp;</p>
-                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/kill')?>" role="button">Try It Now » </a></p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/kill')?>" role="button">Try It Now » </a>   
+                      <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L108" role="button">See Code <> </a></p>
+                  </p>
                 </div>
             </div>
             <div class="row demorow">
                 <div class="col-md-4">
                     <h2>Microservice (API)</h2>
                     <p>Showcases how FSL can be used to quickly create a microservice API. The example returns JSON as well as a custom HTTP response code.</p>
-                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/api')?>" role="button">Try It Now » </a></p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/api')?>" role="button">Try It Now » </a>
+                             <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L81" role="button">See Code <> </a></p>
+                  </p>
                 </div>
                 <div class="col-md-4">
                     <h2>JWT Handling</h2>
                     <p>Showcases how FSL can be used to quickly encode, decode, and verify JWT tokens.</p>
-                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/jwt')?>" role="button">Try It Now » </a></p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/jwt')?>" role="button">Try It Now » </a>
+                             <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L30" role="button">See Code <> </a></p>
+                  </p>
+                      
                 </div>
                 <div class="col-md-4">
                     <h2>URI Parameters</h2>
                     <p>Showcases basic functionality of dynamically using URI element as a variable. </p>
-                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/how_are_you/Santa')?>" role="button">Try It Now » </a></p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/how_are_you/Santa')?>" role="button">Try It Now » </a>
+                      
+                             <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L133" role="button">See Code <> </a></p>
+                  </p>
                 </div>
             </div>
+              
+                          <div class="row demorow">
+                <div class="col-md-4">
+                    <h2>CURL/HTTP Requests</h2>
+                    <p>Showcases how FSL can be used to connect to fetch data via HTTP from other apps, API's, or microservices. Connects to http://dadjokes.online/echo service.</p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/curl')?>" role="button">Try It Now » </a>
+                             <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L47" role="button">See Code <> </a></p>
+                  </p>
+                </div>
+                <div class="col-md-4">
+                    <h2>Create/Validate Hash</h2>
+                    <p>Showcases how FSL can be used to quickly create a hash or validate a string against a hash.</p>
+                    <p><a class="btn btn-outline-secondary btn-sm" href="<?php echo url_for('/hash')?>" role="button">Try It Now » </a>
+                      
+                             <a class="btn btn-sm" href="https://github.com/yesinteractive/fsl/blob/738b02b548d937d37df7d7403320c3fb98699849/controllers/fsl_controllers.php#L62" role="button">See Code <> </a></p>
+                  </p>
+                </div>
+                <div class="col-md-4">
+                  
+                </div>
+            </div>
+              
+              
             <hr>
             <footer>
                 <p>Copyright © <?php echo date("Y"); ?>  <a href="http://www.yes-interactive.com">Yes Interactive, LLC</a> </p>

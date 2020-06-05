@@ -49,7 +49,27 @@ function process_time(){
  
     
     $response = fsl_curl('http://dadjokes.online/echo', "GET", "JSON", "test=test", NULL,  NULL, NULL, NULL, NULL, NULL );
-    return html("Response Code: " . $response[0] ." <BR>Response: " . $response[2] ." <BR>". process_time());
+    $jsonData = json_encode( json_decode($response[2]), JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES);
+    return html("Response Code: " . $response[0] ." <BR>Response:<font color=yellow> " . $jsonData ." </font><BR>". process_time());
+  }
+
+/*
+*
+* This is an example on how to execute a http call. Good for calling other microservices
+*
+*/
+
+  function create_hash()
+  {
+ 
+    
+    $response = fsl_hash_create("my_password");
+    $validate = fsl_hash_validate("my_password","$response");
+    
+    if ($validate == TRUE) $valid =  "true";
+    else $valid = "false";
+    
+    return html("String to Hash: 'my_password' <BR>Hash Created: $response <BR>Response when running hash against 'my_password': $valid <BR>". process_time());
   }
 
 /*

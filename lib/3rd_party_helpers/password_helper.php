@@ -15,11 +15,12 @@ define("HASH_ALGORITHM_INDEX", 0);
 define("HASH_ITERATION_INDEX", 1);
 define("HASH_SALT_INDEX", 2);
 define("HASH_PBKDF2_INDEX", 3);
+define("HASH_SEPERATOR", "$");
 class Password {
 	public static function create_hash($password)
 	{
 		$salt = base64_encode(mcrypt_create_iv(PBKDF2_SALT_BYTES, MCRYPT_DEV_URANDOM));
-		return PBKDF2_HASH_ALGORITHM . ":" . PBKDF2_ITERATIONS . ":" .  $salt . ":" . 
+	 return PBKDF2_HASH_ALGORITHM . HASH_SEPERATOR . PBKDF2_ITERATIONS . HASH_SEPERATOR .  $salt . HASH_SEPERATOR . 
 			base64_encode(self::pbkdf2(
 				PBKDF2_HASH_ALGORITHM,
 				$password,
@@ -32,7 +33,7 @@ class Password {
     
 	public static function validate_password($password, $good_hash)
 	{
-		$params = explode(":", $good_hash);
+		$params = explode(HASH_SEPERATOR, $good_hash);
 		if(count($params) < HASH_SECTIONS)
 		   return false; 
 		$pbkdf2 = base64_decode($params[HASH_PBKDF2_INDEX]);

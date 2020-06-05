@@ -49,6 +49,10 @@ dispatch('/jwt', 'jwt');
 //example showing fsl_curl http request
 dispatch('/curl', 'curl');
 
+//example showing fsl_hash
+dispatch('/hash', 'create_hash');
+
+
 //show session 
 dispatch('/showip/:what/:who', 'showip');
    
