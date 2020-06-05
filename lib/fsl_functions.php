@@ -321,7 +321,35 @@ function fsl_gauth_getauthurl()
  * @return (string)
  */
 
+/* 
+ *
+ * fsl_hash_create
+ *
+ * creates a one way sha256 hash. Good for storing passwords, keys, and other data
+ * elements where you do not need to unencrypt
+ *
+ * @string (string) data to be hashed
+ * @return (string)
+ */
+function fsl_hash_create($string)
+{
+  return Password::create_hash($string);
+}
 
+/* 
+ *
+ * fsl_hash_validate
+ *
+ * verify that a string matches a stored hashed version of the string
+ *
+ * @string (string) data to be validated
+ * @good_hash (string) hash to be compared against
+ * @return (boolean)
+ */
+function fsl_hash_validate($string,$good_hash)
+{
+  return Password::validate_password($string, $good_hash);
+}
 
 
 ?>
