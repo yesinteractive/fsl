@@ -47,8 +47,7 @@ function process_time(){
   function curl()
   {
  
-    
-    $response = fsl_curl('http://dadjokes.online/echo', "GET", "JSON", "test=test", NULL,  NULL, NULL, NULL, NULL, NULL );
+    $response = fsl_curl('http://dadjokes.online/echo', "GET", "JSON", "test=test", NULL,  "TOKEN", NULL, NULL, "123", NULL );
     $jsonData = json_encode( json_decode($response[2]), JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES);
     return html("Response Code: " . $response[0] ." <BR>Response:<font color=yellow> " . $jsonData ." </font><BR>". process_time());
   }
