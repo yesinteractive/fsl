@@ -109,7 +109,7 @@ Output:
             </div>
             <hr>
             <footer>
-                <p>© <a href="http://www.yes-interactive.com">Yes Interactive, LLC</a> 2018</p>
+                <p>Copyright © <?php echo date("Y"); ?>  <a href="http://www.yes-interactive.com">Yes Interactive, LLC</a> </p>
             </footer>
         </div>         
         <!-- /container -->

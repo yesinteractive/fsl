@@ -46,6 +46,9 @@ dispatch('/api', 'api');
 //example showing JWT usage
 dispatch('/jwt', 'jwt');
 
+//example showing fsl_curl http request
+dispatch('/curl', 'curl');
+
 //show session 
 dispatch('/showip/:what/:who', 'showip');
    

@@ -352,4 +352,87 @@ function fsl_hash_validate($string,$good_hash)
 }
 
 
+/* 
+ *
+ * fsl_curl
+ *
+ * make an external http call. helpful when calling external api's
+ *
+ * @url: url of api
+ * @method: action of request. Options include GET POST PUT DELETE
+ * @datatype: expected data either XML or JSON supported. Otherwise defaults to *
+ * @urlparams: url parameters (query string)
+ * @postdata: array of data to submit
+ * @authtype: authentication if needed BASIC or TOKEN (bearer token)
+ * @$authuser: basic auth user
+ * @$authpassword: basic auth password
+ * @$authtoken: bearer token
+ * @$customheader: ARRAY of custom headers
+ * output: return array(http response code, curl info, response);
+ */
+
+function fsl_curl($url, $method = "GET", $datatype  = NULL, $urlparams = NULL, $postdata  = NULL,  $authtype = NULL, $authuser = NULL, $authpassword = NULL, $authtoken = NULL, $customheader = NULL ) {
+
+	if ($urlparams != NULL) {
+	$url .= '?' . $urlparams;
+	}
+  
+ 
+  //set user agent
+  $headers = array('User-Agent: Fresh Squeezed Limonade (https://github.com/yesinteractive/fsl)');
+
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 'FALSE');
+	
+  //data type
+  if ($datatype == "XML") {
+    array_push($headers,'Content-Type: application/xml');    
+  }else if ($datatype == "JSON") {
+    array_push($headers,'Content-Type: application/json');  
+    } else {
+    array_push($headers,'Content-Type: */*');      
+	}
+
+  //method
+	if ($method == "POST") {
+		//need to post the values? 
+		curl_setopt($ch, CURLOPT_POST, true);
+		//fields which will be posted. 
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+	} else if ($method == "PUT") {
+		curl_setopt($ch, CURLOPT_PUT, true);
+	} else if ($method == "DELETE") {
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+	} else{
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+  }
+  
+  //auth
+  if ($authtype == "BASIC") {
+  	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	  curl_setopt($ch, CURLOPT_USERPWD, "$authuser:$authpassword");
+	} else if ($authtype == "TOKEN") {
+    array_push($headers,'Authorization: Bearer ' . $authtoken);
+	} else{
+    //no auth
+  }
+  
+  //merge headeer arrays if customheader set and set headers 
+  if ($customheader == NULL){
+     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
+  } else {
+     curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers,$customheader)); 
+  }               
+                
+	$output = curl_exec($ch);
+	$info = curl_getinfo($ch);
+	$code = $info['http_code'];
+	curl_close($ch);
+
+	return $ret = array($code, $info, $output);
+}
+
+
 ?>

@@ -40,6 +40,20 @@ function process_time(){
 
 /*
 *
+* This is an example on how to execute a http call. Good for calling other microservices
+*
+*/
+
+  function curl()
+  {
+ 
+    
+    $response = fsl_curl('http://dadjokes.online/echo', "GET", "JSON", "test=test", NULL,  NULL, NULL, NULL, NULL, NULL );
+    return html("Response Code: " . $response[0] ." <BR>Response: " . $response[2] ." <BR>". process_time());
+  }
+
+/*
+*
 * This is an example on how to make a RESTful JSON Response and Set A Status Code
 *
 */

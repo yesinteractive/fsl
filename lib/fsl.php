@@ -546,7 +546,9 @@ function env($reset = null)
     if ((isset($_SERVER['CONTENT_TYPE'])) && (strpos($_SERVER['CONTENT_TYPE'], 'application/json') === 0))
     {
       // handle PUT/POST requests which have JSON in request body
-      $GLOBALS[$varname] = json_decode(file_get_contents('php://input'), true);
+           $content = file_get_contents('php://input');
+      if (json_decode($content) == NULL) return $env;
+      else $GLOBALS[$varname] = json_decode(($content), true);
     }
     elseif($method == 'PUT' || $method == 'DELETE')
     {
