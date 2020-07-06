@@ -107,7 +107,7 @@ function showip()
  function kill_session()
   {
     set_or_default('name', params('who'), "everybody");
-    session_destroy();
+    fsl_session_kill("crop");
     return html("Session Is Destroyed.<BR>" . process_time());
   }
 
