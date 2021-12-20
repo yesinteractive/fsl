@@ -4,8 +4,8 @@ MAINTAINER YesInteractive- http://yes-interactive.com
 # Install modules and updates
 RUN apk update \
     && apk --no-cache add \
-        openssl=="1.1.1g-r0" \
-        apache2=="2.4.46-r0" \
+        openssl \
+        apache2 \
         apache2-ssl \
         apache2-http2 \
         git \
