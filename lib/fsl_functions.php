@@ -360,7 +360,7 @@ function fsl_hash_validate($string,$good_hash)
  *
  * @url: url of api
  * @method: action of request. Options include GET POST PUT DELETE
- * @datatype: expected data either XML or JSON supported. Otherwise defaults to *
+ * @datatype: expected data either XML or JSON or FORM supported. Otherwise defaults to *
  * @urlparams: url parameters (query string)
  * @postdata: array of data to submit
  * @authtype: authentication if needed BASIC or TOKEN (bearer token)
@@ -391,7 +391,9 @@ function fsl_curl($url, $method = "GET", $datatype  = NULL, $urlparams = NULL, $
     array_push($headers,'Content-Type: application/xml');    
   }else if ($datatype == "JSON") {
     array_push($headers,'Content-Type: application/json');  
-    } else {
+    }  else if ($datatype == "FORM") {
+      array_push($headers,'Content-Type: application/x-www-form-urlencoded');
+  } else {
     array_push($headers,'Content-Type: */*');      
 	}
 
