@@ -6,8 +6,7 @@
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/fsl/fsl?style=for-the-badge)
 
 
-FSL (Fresh Squeezed Limonade) is Yes Interactive's renergized continuation and adaptation of the abandonded Limonade PHP micro framework project (https://github.com/sofadesign/limonade)
-originally created by Fabrice Luraine. FSL is extremely lightweight and flexible, which provides a great rapid development framework for Web apps, REST API's and Microservices.  FSL based apps work great in containerized application environments such as Docker, K8s, Openshift, and more.
+FSL is an extremely lightweight and flexible PHP Micro-framework, which provides a great rapid development framework for Web apps, REST API's and Microservices.  FSL based apps work great in containerized application environments such as Docker, K8s, Openshift, and more.
 
 
 
@@ -28,16 +27,19 @@ Enjoy!
 
 ### With Docker ###
 
-[![](https://images.microbadger.com/badges/image/yesinteractive/fsl.svg)](https://microbadger.com/images/yesinteractive/fsl "Get your own image badge on microbadger.com") [![](https://images.microbadger.com/badges/version/yesinteractive/fsl.svg)](https://microbadger.com/images/yesinteractive/fsl "Get your own version badge on microbadger.com")
 
-Docker image is Alpine 3.9 based running on Apache. The containter exposes both ports 80 an 443 with a self signed certificated. If you wish to alter the container configuration, feel free to use the Dockerfile in this repo (https://github.com/yesinteractive/fsl/blob/master/Dockerfile). Otherwise, you can pull the latest image from DockerHub with the following command:
+Docker image is Alpine 3.11 based running on Apache. The container exposes both ports 80 an 443 with a self signed certificate. If you wish to alter the container configuration, feel free to use the Dockerfile in this repo (https://github.com/yesinteractive/fsl/blob/master/Dockerfile). Otherwise, you can pull the latest image from DockerHub with the following command:
 ```
 docker pull yesinteractive/fsl
 ```
-Typical basic usage:
+Typical basic usage (below example exposes HTTP on port 8100 and HTTPS on 8143):
 
 ```
-docker run -it yesinteractive/fsl
+$ docker run -d \
+  -p 8100:80 \
+  -p 8143:443 \
+  -e DADJOKES_NOECHO=FALSE \
+  yesinteractive/dadjokes
 ```
 
 Typical usage in Dockerfile:
