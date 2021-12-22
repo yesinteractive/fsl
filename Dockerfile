@@ -65,8 +65,11 @@ RUN apk update \
     # Empty /var/www and add an index.php to show phpinfo()
     && rm -rf /var/www/* \
     && echo '<?php phpinfo(); ?>' >  /app/phpinfo.php \
-    && cd /app \
-    && RUN git clone git@github.com:yesinteractive/fsl.git \
+    && mkdir /app/fsl \
+    && cd /app/fsl \
+    && git clone https://github.com/yesinteractive/fsl.git\
+    && cp -r /app/fsl/. /app \
+    && rm -rf /app/fsl \
 
 WORKDIR /app
 
