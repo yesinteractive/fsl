@@ -4,7 +4,7 @@
 
 function configure()
 {
-  option('fsl_version', "20211222");
+  option('fsl_version', "20211227");
   option('env', ENV_PRODUCTION);
   option('base_uri', "/"); //set if app is not in web root directory but in a subdirectory
   option('session', 'fsl'); // enable with a specific session name
