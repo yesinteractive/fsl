@@ -39,7 +39,7 @@ $ docker run -d \
   -p 8100:80 \
   -p 8143:443 \
   -e DADJOKES_NOECHO=FALSE \
-  yesinteractive/dadjokes
+  yesinteractive/fsl
 ```
 
 Typical usage in Dockerfile:

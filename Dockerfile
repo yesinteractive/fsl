@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:latest
 MAINTAINER yes!nteractvie - http://yes-interactive.com
 
 # Install modules and updates
@@ -9,10 +9,10 @@ RUN apk update \
         apache2-ssl \
         apache2-http2 \
         git \
-	unzip \
+        unzip \
     # Install PHP from community
-    && apk --no-cache --repository http://dl-4.alpinelinux.org/alpine/v3.9/community/ add \
-        php7=="7.2.33-r0" \
+    && apk --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/community/ add \
+        php7 \
         php7-apache2 \
         php7-bcmath \
         php7-bz2 \
@@ -37,10 +37,9 @@ RUN apk update \
         php7-xml \
         php7-xmlreader \
     && rm /var/cache/apk/* \
-
     # Run required config / setup for apache
     # Ensure apache can create pid file
-    #&& mkdir /run/apache2 \
+    && mkdir /run/apache2 \
     # Fix group
     && sed -i -e 's/Group apache/Group www-data/g' /etc/apache2/httpd.conf \
     # Fix ssl module
@@ -57,7 +56,7 @@ RUN apk update \
     && echo '' >> /etc/apache2/httpd.conf \
     && echo 'IncludeOptional /etc/apache2/conf.d/custom/*.conf' >> /etc/apache2/httpd.conf \
     # Fix modules
-    && sed -i 's#AllowOverride None#AllowOverride All#' /etc/apache2/httpd.conf \	
+    && sed -i 's#AllowOverride None#AllowOverride All#' /etc/apache2/httpd.conf \
     && sed -i -e 's/ServerRoot \/var\/www/ServerRoot \/etc\/apache2/g' /etc/apache2/httpd.conf \
     && mv /var/www/modules /etc/apache2/modules \
     && mv /var/www/run /etc/apache2/run \
@@ -70,6 +69,7 @@ RUN apk update \
     && rm -rf /app/master.zip \
     && cp -r /app/fsl-master/. /app \
     && rm -rf /app/fsl-master
+
 WORKDIR /app
 
 # Export http and https
