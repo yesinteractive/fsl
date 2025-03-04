@@ -38,7 +38,6 @@ Typical basic usage (below example exposes HTTP on port 8100 and HTTPS on 8143):
 $ docker run -d \
   -p 8100:80 \
   -p 8143:443 \
-  -e DADJOKES_NOECHO=FALSE \
   yesinteractive/fsl
 ```
 
