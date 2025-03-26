@@ -16,11 +16,12 @@ define("HASH_ITERATION_INDEX", 1);
 define("HASH_SALT_INDEX", 2);
 define("HASH_PBKDF2_INDEX", 3);
 define("HASH_SEPERATOR", "$");
+
 class Password {
 	public static function create_hash($password)
 	{
-		$salt = base64_encode(mcrypt_create_iv(PBKDF2_SALT_BYTES, MCRYPT_DEV_URANDOM));
-	 return PBKDF2_HASH_ALGORITHM . HASH_SEPERATOR . PBKDF2_ITERATIONS . HASH_SEPERATOR .  $salt . HASH_SEPERATOR . 
+		$salt = base64_encode(random_bytes(PBKDF2_SALT_BYTES));
+		return PBKDF2_HASH_ALGORITHM . HASH_SEPERATOR . PBKDF2_ITERATIONS . HASH_SEPERATOR . $salt . HASH_SEPERATOR . 
 			base64_encode(self::pbkdf2(
 				PBKDF2_HASH_ALGORITHM,
 				$password,
@@ -52,6 +53,9 @@ class Password {
     
 	public static function slow_equals($a, $b)
 	{
+		if (function_exists('hash_equals')) {
+			return hash_equals($a, $b);
+		}
 		$diff = strlen($a) ^ strlen($b);
 		for($i = 0; $i < strlen($a) && $i < strlen($b); $i++)
 		{
@@ -64,20 +68,24 @@ class Password {
 	{
 		$algorithm = strtolower($algorithm);
 		if(!in_array($algorithm, hash_algos(), true))
-			die('PBKDF2 ERROR: Invalid hash algorithm.');
+			throw new Exception('PBKDF2 ERROR: Invalid hash algorithm.');
 		if($count <= 0 || $key_length <= 0)
-			die('PBKDF2 ERROR: Invalid parameters.');
+			throw new Exception('PBKDF2 ERROR: Invalid parameters.');
+    
+		if (function_exists("hash_pbkdf2")) {
+			if (!$raw_output) {
+				$key_length = $key_length * 2;
+			}
+			return hash_pbkdf2($algorithm, $password, $salt, $count, $key_length, $raw_output);
+		}
     
 		$hash_length = strlen(hash($algorithm, "", true));
 		$block_count = ceil($key_length / $hash_length);
     
 		$output = "";
 		for($i = 1; $i <= $block_count; $i++) {
-			// $i encoded as 4 bytes, big endian.
 			$last = $salt . pack("N", $i);
-			// first iteration
 			$last = $xorsum = hash_hmac($algorithm, $last, $password, true);
-			// perform the other $count - 1 iterations
 			for ($j = 1; $j < $count; $j++) {
 				$xorsum ^= ($last = hash_hmac($algorithm, $last, $password, true));
 			}

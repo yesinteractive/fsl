@@ -124,6 +124,7 @@ function remove_magic_quotes($array)
   return $array;
 }
 
+# Remove get_magic_quotes_gpc() checks since it's removed in PHP 7.4+
 if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc())
 {
   $_GET    = remove_magic_quotes($_GET);
@@ -132,7 +133,7 @@ if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc())
   ini_set('magic_quotes_gpc', 0);
 }
   
-if(function_exists('set_magic_quotes_runtime') && get_magic_quotes_runtime()) set_magic_quotes_runtime(false);
+if(function_exists('set_magic_quotes_runtime') && get_magic_quotes_runtime()) set_magic_quotes_runtime(false); // Remove - magic quotes was removed in PHP 7.4
 
 # C. Disable error display
 #    by default, no error reporting; it will be switched on later in run().
@@ -226,9 +227,9 @@ dispatch(array("/_lim_public/**", array('_lim_public_file')), 'render_limonade_f
  * @param mixed  $values,... 
  * @return mixed option value for $name if $name argument is provided, else return all options
  */
-function option($name = null, $values = null)
+function option(?string $name = null, mixed $values = null): mixed
 {
-  static $options = array();
+  static $options = [];
   $args = func_get_args();
   $name = array_shift($args);
   if(is_null($name)) return $options;
@@ -237,7 +238,7 @@ function option($name = null, $values = null)
     $options[$name] = count($args) > 1 ? $args : $args[0];
   }
   if(array_key_exists($name, $options)) return $options[$name];
-  return;
+  return null;
 }
 
 /**
@@ -265,7 +266,7 @@ function option($name = null, $values = null)
  */
 function params($name_or_array_or_null = null, $value = null)
 {
-  static $params = array();
+  static $params = [];
   $args = func_get_args();
 
   if(func_num_args() > 0)
@@ -274,12 +275,12 @@ function params($name_or_array_or_null = null, $value = null)
     if(is_null($name))
     {
       # Reset params
-      $params = array();
+      $params = [];
       return $params;
     }
     if(is_array($name))
     {
-      $params = array_merge($params, $name);
+      $params = [...$params, ...$name];
       return $params;
     }
     $nargs = count($args);
@@ -306,7 +307,7 @@ function params($name_or_array_or_null = null, $value = null)
  */
 function set($name = null, $values = null)
 {
-  static $vars = array();
+  static $vars = [];
   $args = func_get_args();
   $name = array_shift($args);
   if(is_null($name)) return $vars;
@@ -339,6 +340,8 @@ function set_or_default($name, $value, $default)
  */
 function run($env = null)
 {
+  send_security_headers();
+
   if(is_null($env)) $env = env();
    
   # 0. Set default configuration
@@ -402,7 +405,8 @@ function run($env = null)
   if(!defined('SID') && option('session'))
   {
     if(!is_bool(option('session'))) session_name(option('session'));
-    if(!session_start()) trigger_error("An error occured while trying to start the session", E_USER_WARNING);
+    if(!secure_session_start()) 
+        trigger_error("An error occurred while trying to start the session", E_USER_WARNING);
   }
 
   # 5. Set some default methods if needed
@@ -509,11 +513,11 @@ function stop_and_exit($exit = true)
  */
 function env($reset = null)
 {
-  static $env = array();
+  static $env = [];
   if(func_num_args() > 0)
   {
     $args = func_get_args();
-    if(is_null($args[0])) $env = array();
+    if(is_null($args[0])) $env = [];
   }
 
   if(empty($env))
@@ -530,13 +534,13 @@ function env($reset = null)
       $GLOBALS['_COOKIE']  =& $_COOKIE;
     }
 
-    $glo_names = array('SERVER', 'FILES', 'REQUEST', 'SESSION', 'ENV', 'COOKIE');
+    $glo_names = ['SERVER', 'FILES', 'REQUEST', 'SESSION', 'ENV', 'COOKIE'];
 
-    $vars = array_merge($glo_names, request_methods());
+    $vars = [...$glo_names, ...request_methods()];
     foreach($vars as $var)
     {
       $varname = "_$var";
-      if(!array_key_exists($varname, $GLOBALS)) $GLOBALS[$varname] = array();
+      if(!array_key_exists($varname, $GLOBALS)) $GLOBALS[$varname] = [];
       $env[$var] =& $GLOBALS[$varname];
     }
 
@@ -607,10 +611,10 @@ function app_file()
  */
 function error($errno = null, $function = null)
 {
-  static $errors = array();
+  static $errors = [];
   if(func_num_args() > 0)
   {
-    $errors[] = array('errno'=>$errno, 'function'=> $function);
+    $errors[] = ['errno'=>$errno, 'function'=> $function];
   }
   return $errors;
 }
@@ -685,7 +689,7 @@ function error_handler_dispatcher($errno, $errstr, $errfile, $errline)
   else
   {
     # Other errors will stop application
-    static $handlers = array();
+    static $handlers = [];
     if(empty($handlers))
     {
       error(E_LIM_PHP, 'error_default_handler');
@@ -695,7 +699,7 @@ function error_handler_dispatcher($errno, $errstr, $errfile, $errline)
     $is_http_err = http_response_status_is_valid($errno);
     while($handler = array_shift($handlers))
     {
-      $e = is_array($handler['errno']) ? $handler['errno'] : array($handler['errno']);
+      $e = is_array($handler['errno']) ? $handler['errno'] : [$handler['errno']];
       while($ee = array_shift($e))
       {
         if($ee == $errno || $ee == E_LIM_PHP || ($ee == E_LIM_HTTP && $is_http_err))
@@ -829,9 +833,9 @@ function error_layout($layout = false)
  */
 function error_notice($errno = false, $errstr = null, $errfile = null, $errline = null)
 {
-  static $notices = array();
+  static $notices = [];
   if($errno) $notices[] = compact('errno', 'errstr', 'errfile', 'errline');
-  else if(is_null($errno)) $notices = array();
+  else if(is_null($errno)) $notices = [];
   return $notices;
 }
 
@@ -848,7 +852,7 @@ function error_notices_render()
     error_notice(null); // reset notices
     $c_view_dir = option('views_dir'); // keep for restore after render
     option('views_dir', option('limonade_views_dir'));
-    $o = render('_notices.html.php', null, array('notices' => $notices));
+    $o = render('_notices.html.php', null, ['notices' => $notices]);
     option('views_dir', $c_view_dir); // restore current views dir
 
     return $o;
@@ -886,7 +890,7 @@ function error_wont_halt_app($num)
  */
 function error_type($num = null)
 {
-  $types = array (
+  $types = [
               E_ERROR              => 'ERROR',
               E_WARNING            => 'WARNING',
               E_PARSE              => 'PARSING ERROR',
@@ -903,7 +907,7 @@ function error_type($num = null)
               E_DEPRECATED         => 'DEPRECATED WARNING',
               E_USER_DEPRECATED    => 'USER DEPRECATED WARNING',
               E_LIM_DEPRECATED     => 'LIMONADE DEPRECATED WARNING'
-              );
+              ];
   return is_null($num) ? $types : $types[$num];
 }
 
@@ -1033,7 +1037,7 @@ function request_is_patch($env = null)
  */
 function request_methods()
 {
-  return array("GET","POST","PUT","DELETE","HEAD","PATCH");
+  return ["GET","POST","PUT","DELETE","HEAD","PATCH"];
 }
 
 /**
@@ -1159,7 +1163,7 @@ function request_uri($env = null)
  *
  * @return void
  */
-function dispatch($path_or_array, $callback, $options = array())
+function dispatch($path_or_array, $callback, $options = [])
 {
   dispatch_get($path_or_array, $callback, $options);
 }
@@ -1172,7 +1176,7 @@ function dispatch($path_or_array, $callback, $options = array())
  * @param array $options (optional). See {@link route()} for available options.
  * @return void
  */
-function dispatch_get($path_or_array, $callback, $options = array())
+function dispatch_get($path_or_array, $callback, $options = [])
 {
   route("GET", $path_or_array, $callback, $options);
   route("HEAD", $path_or_array, $callback, $options);
@@ -1186,7 +1190,7 @@ function dispatch_get($path_or_array, $callback, $options = array())
  * @param array $options (optional). See {@link route()} for available options.
  * @return void
  */
-function dispatch_post($path_or_array, $callback, $options = array())
+function dispatch_post($path_or_array, $callback, $options = [])
 {
   route("POST", $path_or_array, $callback, $options);
 }
@@ -1199,7 +1203,7 @@ function dispatch_post($path_or_array, $callback, $options = array())
  * @param array $options (optional). See {@link route()} for available options.
  * @return void
  */
-function dispatch_put($path_or_array, $callback, $options = array())
+function dispatch_put($path_or_array, $callback, $options = [])
 {
   route("PUT", $path_or_array, $callback, $options);
 }
@@ -1212,7 +1216,7 @@ function dispatch_put($path_or_array, $callback, $options = array())
  * @param array $options (optional). See {@link route()} for available options.
  * @return void
  */
-function dispatch_delete($path_or_array, $callback, $options = array())
+function dispatch_delete($path_or_array, $callback, $options = [])
 {
   route("DELETE", $path_or_array, $callback, $options);
 }
@@ -1225,7 +1229,7 @@ function dispatch_delete($path_or_array, $callback, $options = array())
  * @param array $options (optional). See {@link route()} for available options.
  * @return void
  */
-function dispatch_patch($path_or_array, $callback, $options = array())
+function dispatch_patch($path_or_array, $callback, $options = [])
 {
   route("PATCH", $path_or_array, $callback, $options);
 }
@@ -1248,19 +1252,19 @@ function dispatch_patch($path_or_array, $callback, $options = array())
  */
 function route()
 {
-  static $routes = array();
+  static $routes = [];
   $nargs = func_num_args();
   if( $nargs > 0)
   {
     $args = func_get_args();
-    if($nargs === 1 && is_null($args[0])) $routes = array();
+    if($nargs === 1 && is_null($args[0])) $routes = [];
     else if($nargs < 3) trigger_error("Missing arguments for route()", E_USER_ERROR);
     else
     {
       $method        = $args[0];
       $path_or_array = $args[1];
       $func          = $args[2];
-      $options       = $nargs > 3 ? $args[3] : array();
+      $options       = $nargs > 3 ? $args[3] : [];
 
       $routes[] = route_build($method, $path_or_array, $func, $options);
     }
@@ -1294,7 +1298,7 @@ function route_reset()
  *     those parameters will be merged with routes parameters.
  * @return array array with keys "method", "pattern", "names", "callback", "options"
  */
-function route_build($method, $path_or_array, $callback, $options = array())
+function route_build($method, $path_or_array, $callback, $options = [])
 {
   $method = strtoupper($method);
   if(!in_array($method, request_methods())) 
@@ -1308,7 +1312,7 @@ function route_build($method, $path_or_array, $callback, $options = array())
   else
   {
     $path  = $path_or_array;
-    $names = array();
+    $names = [];
   }
 
   $single_asterisk_subpattern   = "(?:/([^\/]*))?";
@@ -1327,7 +1331,7 @@ function route_build($method, $path_or_array, $callback, $options = array())
   }
   else
   {
-    $parsed = array();
+    $parsed = [];
     $elts = explode('/', $path);
 
     $parameters_count = 0;
@@ -1358,7 +1362,7 @@ function route_build($method, $path_or_array, $callback, $options = array())
 
       elseif(strpos($elt, '*') !== false):
         $sub_elts = explode('*', $elt);
-        $parsed_sub = array();
+        $parsed_sub = [];
         foreach($sub_elts as $sub_elt)
         {
           $parsed_sub[] = preg_quote($sub_elt, "#");
@@ -1382,11 +1386,11 @@ function route_build($method, $path_or_array, $callback, $options = array())
     $pattern = "#^".implode('', $parsed).$optionnal_slash_subpattern."?$#i";
   }
 
-  return array( "method"       => $method,
+  return [ "method"       => $method,
                 "pattern"      => $pattern,
                 "names"        => $names,
                 "callback"     => $callback,
-                "options"      => $options  );
+                "options"      => $options  ];
 }
 
 /**
@@ -1412,7 +1416,7 @@ function route_find($method, $path)
     if($method == $route["method"] && preg_match($route["pattern"], $path, $matches))
     {
       $options = $route["options"];
-      $params = array_key_exists('params', $options) ? $options["params"] : array();
+      $params = array_key_exists('params', $options) ? $options["params"] : [];
       if(count($matches) > 1)
       {
         array_shift($matches);
@@ -1422,14 +1426,14 @@ function route_find($method, $path)
         if( $n_matches < $n_names )
         {
           $a = array_fill(0, $n_names - $n_matches, null);
-          $matches = array_merge($matches, $a);
+          $matches = [...$matches, ...$a];
         }
         else if( $n_matches > $n_names )
         {
           $names = range($n_names, $n_matches - 1);
         }
         $arr_comb = array_combine($names, $matches);
-        $params = array_replace($params, $arr_comb);
+        $params = [...$params, ...$arr_comb];
       }
       $route["params"] = $params;
       return $route;
@@ -1459,7 +1463,7 @@ function route_find($method, $path)
  * @param string $locals 
  * @return string
  */
-function render($content_or_func, $layout = '', $locals = array())
+function render($content_or_func, $layout = '', $locals = [])
 {
   $args = func_get_args();
   $content_or_func = array_shift($args);
@@ -1467,9 +1471,9 @@ function render($content_or_func, $layout = '', $locals = array())
   $view_path = file_path(option('views_dir'),$content_or_func);
   
   if(function_exists('before_render'))
-    list($content_or_func, $layout, $locals, $view_path) = before_render($content_or_func, $layout, $locals, $view_path);    
+    [$content_or_func, $layout, $locals, $view_path] = before_render($content_or_func, $layout, $locals, $view_path);    
   
-  $vars = array_merge(set(), $locals);
+  $vars = [...set(), ...$locals];
 
   $flash = flash_now();
   if(array_key_exists('flash', $vars)) trigger_error('A $flash variable is already passed to view. Flash messages will only be accessible through flash_now()', E_USER_NOTICE);  
@@ -1512,7 +1516,7 @@ function render($content_or_func, $layout = '', $locals = array())
 
   if(empty($layout)) return $content;
 
-  return render($layout, null, array('content' => $content));
+  return render($layout, null, ['content' => $content]);
 }
 
 /**
@@ -1524,7 +1528,7 @@ function render($content_or_func, $layout = '', $locals = array())
  * @param string $locals 
  * @return string
  */
-function partial($content_or_func, $locals = array())
+function partial($content_or_func, $locals = [])
 {
   return render($content_or_func, null, $locals);
 }
@@ -1537,7 +1541,7 @@ function partial($content_or_func, $locals = array())
  * @param string $locals 
  * @return string
  */ 
-function html($content_or_func, $layout = '', $locals = array())
+function html($content_or_func, $layout = '', $locals = [])
 {
   send_header('Content-Type: text/html; charset='.strtolower(option('encoding')));
   $args = func_get_args();
@@ -1580,7 +1584,7 @@ function xml($data)
  * @param string $locals 
  * @return string
  */
-function css($content_or_func, $layout = '', $locals = array())
+function css($content_or_func, $layout = '', $locals = [])
 {
   send_header('Content-Type: text/css; charset='.strtolower(option('encoding')));
   $args = func_get_args();
@@ -1595,7 +1599,7 @@ function css($content_or_func, $layout = '', $locals = array())
  * @param string $locals 
  * @return string
  */
-function js($content_or_func, $layout = '', $locals = array())
+function js($content_or_func, $layout = '', $locals = [])
 {
   send_header('Content-Type: application/javascript; charset='.strtolower(option('encoding')));
   $args = func_get_args();
@@ -1610,7 +1614,7 @@ function js($content_or_func, $layout = '', $locals = array())
  * @param string $locals 
  * @return string
  */
-function txt($content_or_func, $layout = '', $locals = array())
+function txt($content_or_func, $layout = '', $locals = [])
 {
   send_header('Content-Type: text/plain; charset='.strtolower(option('encoding')));
   $args = func_get_args();
@@ -1626,10 +1630,10 @@ function txt($content_or_func, $layout = '', $locals = array())
  * @param int $json_option
  * @return string
  */
-function json($data, $json_option = 0)
+function json($data, int $json_option = JSON_THROW_ON_ERROR): string
 {
   send_header('Content-Type: application/json; charset='.strtolower(option('encoding')));
-  return version_compare(PHP_VERSION, '5.3.0', '>=') ? json_encode($data, $json_option) : json_encode($data);
+  return json_encode($data, $json_option | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 /**
@@ -1703,14 +1707,14 @@ function send_header($header = null, $replace = true, $code = false)
  */ 
 function url_for($params = null)
 {
-  $paths  = array();
+  $paths  = [];
   $params = func_get_args();
-  $GET_params = array();
+  $GET_params = [];
   foreach($params as $param)
   {
     if(is_array($param))
     {
-      $GET_params = array_merge($GET_params, $param);
+      $GET_params = [...$GET_params, ...$param];
       continue;
     }
     if(filter_var_url($param))
@@ -1783,11 +1787,11 @@ function h($str, $quote_style = ENT_NOQUOTES, $charset = null)
 function flash($name = null, $value = null)
 {
   if(!defined('SID')) trigger_error("Flash messages can't be used because session isn't enabled", E_USER_WARNING);
-  static $messages = array();
+  static $messages = [];
   $args = func_get_args();
   $name = array_shift($args);
   if(is_null($name)) return $messages;
-  if(is_array($name)) return $messages = array_merge($messages, $name);
+  if(is_array($name)) return $messages = [...$messages, ...$name];
   if(!empty($args))
   {
     $messages[$name] = count($args) > 1 ? $args : $args[0];
@@ -1817,13 +1821,13 @@ function flash_now($name = null, $value = null)
   if(is_null($messages))
   {
     $fkey = LIM_SESSION_FLASH_KEY;
-    $messages = array();
+    $messages = [];
     if(defined('SID') && array_key_exists($fkey, $_SESSION)) $messages = $_SESSION[$fkey];
   }
   $args = func_get_args();
   $name = array_shift($args);
   if(is_null($name)) return $messages;
-  if(is_array($name)) return $messages = array_merge($messages, $name);
+  if(is_array($name)) return $messages = [...$messages, ...$name];
   if(!empty($args))
   {
     $messages[$name] = count($args) > 1 ? $args : $args[0];
@@ -1900,11 +1904,11 @@ function end_content_for()
  *   <code>--enable-memory-limit</code>. )
  * 
  * @access public
- * @return array
+ * @return array
  */
 function benchmark()
 {
-	$res = array( 'execution_time' => (microtime(true) - LIM_START_MICROTIME) );
+	$res = ['execution_time' => (microtime(true) - LIM_START_MICROTIME) ];
 	if(defined('LIM_START_MEMORY'))
 	{
 		$current_mem_usage     = memory_get_usage();
@@ -1995,7 +1999,7 @@ function require_once_dir($path, $pattern = "*.php", $prevents_output = true)
 {
   if($path[strlen($path) - 1] != "/") $path .= "/";
   $filenames = glob($path.$pattern);
-  if(!is_array($filenames)) $filenames = array();
+  if(!is_array($filenames)) $filenames = [];
   if($prevents_output) ob_start();
   foreach($filenames as $filename) require_once $filename;
   if($prevents_output) ob_end_clean();
@@ -2141,7 +2145,7 @@ function redirect_to($params)
   {
     $status = HTTP_MOVED_TEMPORARILY; # default for a redirection in PHP
     $params = func_get_args();
-    $n_params = array();
+    $n_params = [];
     # extract status param if exists
     foreach($params as $param)
     {
@@ -2186,7 +2190,7 @@ function redirect($uri)
  */
 function http_response_status($num = null)
 {
-  $status =  array(
+  $status =  [
       100 => 'Continue',
       101 => 'Switching Protocols',
       102 => 'Processing',
@@ -2242,7 +2246,7 @@ function http_response_status($num = null)
       506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       510 => 'Not Extended'
-  );
+  ];
   if(is_null($num)) return $status;
   return array_key_exists($num, $status) ? $status[$num] : '';
 }
@@ -2321,7 +2325,7 @@ function http_ua_accepts($type, $env = null)
  */
 function mime_type($ext = null)
 {
-  $types = array(
+  $types = [
     'ai'      => 'application/postscript',
     'aif'     => 'audio/x-aiff',
     'aifc'    => 'audio/x-aiff',
@@ -2480,7 +2484,7 @@ function mime_type($ext = null)
     'xwd'     => 'image/x-xwindowdump',
     'xyz'     => 'chemical/x-xyz',
     'zip'     => 'application/zip'
-  );
+  ];
 
   if (is_null($ext)) return $types;
 
@@ -2626,7 +2630,7 @@ function file_read($filename, $return = false)
  */
 function file_list_dir($dir)
 {
-  $files = array();
+  $files = [];
   if ($handle = opendir($dir))
   {
     while (false !== ($file = readdir($handle)))
@@ -2737,6 +2741,47 @@ function fallbacks_for_not_implemented_functions()
       );
     }
   }
+}
+
+/**
+ * Start a secure session with recommended security settings
+ * 
+ * @return bool True if session started successfully
+ */
+function secure_session_start() {
+    $options = [
+        'cookie_httponly' => true,
+        'cookie_secure' => isset($_SERVER['HTTPS']),
+        'use_strict_mode' => true,
+        'use_only_cookies' => true
+    ];
+    
+    if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
+        return session_start($options);
+    } else {
+        foreach ($options as $key => $value) {
+            ini_set("session.$key", $value);
+        }
+        return session_start();
+    }
+}
+
+/**
+ * Send security headers for the application
+ */
+function send_security_headers() {
+    $headers = [
+        'X-Frame-Options' => 'SAMEORIGIN',
+        'X-XSS-Protection' => '1; mode=block',
+        'X-Content-Type-Options' => 'nosniff',
+        'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'Permissions-Policy' => 'geolocation=(), microphone=(), camera=()'
+    ];
+
+    foreach ($headers as $key => $value) {
+        header("$key: $value");
+    }
 }
 
 
