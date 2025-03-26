@@ -7,14 +7,20 @@ function configure()
   option('fsl_version', "20250326");
 
   option('env', ENV_PRODUCTION);
-  option('base_uri', "/"); //set if app is not in web root directory but in a subdirectory
+  option('base_uri', "/projects/github/fsl"); //set if app is not in web root directory but in a subdirectory
   option('session', 'fsl'); // enable with a specific session name
   
   //##############################################
   //encryption configuration
   
-  //reccommend a random key to use, for example openssl_random_pseudo_bytes(32) will generate a good one
-  option('global_encryption_key', 'setyourkeyhere'); // used in fsl_encrypt and fsl_decrypt
+  // IMPORTANT: Set your encryption key here!
+  // You can generate a secure key by running this command in terminal:
+  // php -r "echo base64_encode(random_bytes(32));"
+  // 
+  // ⚠️ WARNING: If you change this key, previously encrypted data will not be decryptable
+  // ⚠️ WARNING: Keep this key secret and secure
+  // ⚠️ WARNING: Do not commit the actual key to version control
+  option('global_encryption_key', 'X9WpXFpuqmvcJ4pYHgbhKPV8VHQTzqjhN0k6/bAe5rM=');
   
   //##############################################
   //fsl configurations
