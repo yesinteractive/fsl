@@ -5,8 +5,9 @@
 function configure()
 {
   option('fsl_version', "20250326");
+
   option('env', ENV_PRODUCTION);
-  option('base_uri', "/projects/github/fsl"); //set if app is not in web root directory but in a subdirectory
+  option('base_uri', "/"); //set if app is not in web root directory but in a subdirectory
   option('session', 'fsl'); // enable with a specific session name
   
   //##############################################
