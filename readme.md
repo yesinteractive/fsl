@@ -64,9 +64,9 @@ You can also install FSL by referencing it in your project's `composer.json`:
 ```
 
 
-This will install FSL and all required dependencies. FSL requires PHP 5.5.0 or newer.
+This will install FSL and all required dependencies. FSL requires PHP 8.0 or newer.
 
-Require the Composer autoloader into your PHP script, and you are ready to start using Slim.
+Require the Composer autoloader into your PHP script, and you are ready to start using FSL.
 
 ```php
 <?php
@@ -1018,5 +1018,4 @@ function before_sending_header($header)
 {
 
 }
-
 
