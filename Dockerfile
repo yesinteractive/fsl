@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.20
 MAINTAINER yes!nteractvie - http://yes-interactive.com
 
 # Install modules and updates
@@ -10,33 +10,32 @@ RUN apk update \
         apache2-http2 \
         git \
         unzip \
-    # Install PHP from community
-    && apk --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/community/ add \
-        php7 \
-        php7-apache2 \
-        php7-bcmath \
-        php7-bz2 \
-        php7-calendar \
-        php7-common \
-        php7-ctype \
-        php7-curl \
-        php7-dom \
-        php7-json \
-        php7-mbstring \
-        php7-mcrypt \
-        php7-memcached \
-        php7-mysqlnd \
-        php7-opcache \
-        php7-openssl \
-        php7-pdo \
-        php7-pdo_mysql \
-        php7-pdo_sqlite \
-        php7-phar \
-        php7-session \
-        php7-sockets \
-        php7-xml \
-        php7-xmlreader \
+    # Install PHP 8.x runtime and extensions
+    && apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/v3.20/community add \
+        php83 \
+        php83-apache2 \
+        php83-bcmath \
+        php83-bz2 \
+        php83-calendar \
+        php83-common \
+        php83-ctype \
+        php83-curl \
+        php83-dom \
+        php83-mbstring \
+        php83-memcached \
+        php83-mysqli \
+        php83-opcache \
+        php83-openssl \
+        php83-pdo \
+        php83-pdo_mysql \
+        php83-pdo_sqlite \
+        php83-phar \
+        php83-session \
+        php83-sockets \
+        php83-xml \
+        php83-xmlreader \
     && rm /var/cache/apk/* \
+    && ln -sf /usr/bin/php83 /usr/bin/php \
     # Run required config / setup for apache
     # Ensure apache can create pid file
     && mkdir /run/apache2 \
