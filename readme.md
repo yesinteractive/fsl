@@ -1,6 +1,6 @@
-# FSL - Fresh Squeezed Limonade
+# FSL — PHP Agentic Micro-Framework
 
-FSL is a lightweight PHP micro-framework for building REST APIs, microservices, and web applications. It provides clean URL routing, multiple response types, lifecycle hooks, sessions, encryption, and an HTTP client — all in a small, dependency-free package.
+Build AI-powered APIs, LLM services, and MCP servers in PHP — no Composer required.
 
 **Requirements:** PHP 8.0+
 
@@ -13,11 +13,14 @@ FSL is a lightweight PHP micro-framework for building REST APIs, microservices, 
 require 'lib/fsl.php';
 
 function configure() {
-    option('env', ENV_DEVELOPMENT);
+    option('anthropic_api_key', getenv('ANTHROPIC_API_KEY'));
 }
 
-dispatch('/', function() {
-    return html('<h1>Hello, FSL!</h1>');
+dispatch_post('/chat', function() {
+    $response = fsl_anthropic_chat([
+        ['role' => 'user', 'content' => params('message')]
+    ]);
+    return json(['reply' => $response['content'][0]['text']]);
 });
 
 run();
@@ -29,11 +32,158 @@ Point your web server at the project root, or run `php -S localhost:8080` for lo
 
 ## Why FSL?
 
-- **Minimal footprint** — one `require` and you're routing. No Composer required.
-- **REST-first** — native JSON responses, HTTP method routing, and status code helpers.
-- **Built-in security** — AES-256-CBC encryption, encrypted sessions, CSRF protection.
-- **AI-ready** — built-in helpers for Anthropic and OpenAI APIs, plus MCP server support.
-- **Flexible rendering** — HTML templates, JSON, XML, plain text, CSS, JS from one framework.
+- **AI-native** — built-in Anthropic and OpenAI helpers; LLM calls in one line
+- **MCP-ready** — expose any function as an MCP tool in ~10 lines; spec-compliant JSON-RPC 2.0
+- **API-first** — native JSON responses, HTTP method routing, status code helpers
+- **Minimal footprint** — one `require`, no Composer, no build step
+- **Built-in security** — AES-256-CBC encryption, encrypted sessions, CSRF, JWT
+- **HTTP client included** — `fsl_curl()` covers all auth patterns for calling external APIs and agent tool backends
+
+---
+
+## AI / LLM Helpers
+
+FSL includes thin wrappers for the Anthropic and OpenAI chat APIs. Configure your keys in `config/fsl_config.php`:
+
+```php
+function configure() {
+    option('anthropic_api_key', getenv('ANTHROPIC_API_KEY'));
+    option('anthropic_model',   'claude-sonnet-4-6');
+
+    option('openai_api_key', getenv('OPENAI_API_KEY'));
+    option('openai_model',   'gpt-4o');
+}
+```
+
+### Anthropic
+
+```php
+$response = fsl_anthropic_chat([
+    ['role' => 'user', 'content' => 'Summarize this in one sentence: ' . $text]
+]);
+$answer = $response['content'][0]['text'];
+```
+
+With a system prompt and model override:
+
+```php
+$response = fsl_anthropic_chat(
+    messages:   [['role' => 'user', 'content' => $question]],
+    model:      'claude-opus-4-7',
+    max_tokens: 2048,
+    system:     'You are a helpful assistant. Be concise.'
+);
+```
+
+### OpenAI
+
+```php
+$response = fsl_openai_chat([
+    ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+    ['role' => 'user',   'content' => $question]
+]);
+$answer = $response['choices'][0]['message']['content'];
+```
+
+Both functions return the full decoded API response array and throw `RuntimeException` on missing keys or non-2xx responses.
+
+---
+
+## MCP Server
+
+FSL can act as a [Model Context Protocol](https://modelcontextprotocol.io) server, exposing your app's functions as tools that AI agents (Claude Desktop, Cursor, etc.) can call directly.
+
+### Minimal MCP Server
+
+```php
+<?php
+require 'lib/fsl.php';
+
+fsl_mcp_tool(
+    name: 'get_user',
+    description: 'Look up a user by ID',
+    schema: [
+        'type'       => 'object',
+        'properties' => ['id' => ['type' => 'integer', 'description' => 'User ID']],
+        'required'   => ['id']
+    ],
+    callback: function(array $args): array {
+        return user_find($args['id']);
+    }
+);
+
+dispatch_post('/', 'fsl_mcp_handle');
+run();
+```
+
+That's a complete, spec-compliant MCP server.
+
+### How It Works
+
+`fsl_mcp_handle()` is a standard FSL controller that handles JSON-RPC 2.0 requests from AI agents:
+
+| JSON-RPC Method | What FSL does |
+|-----------------|---------------|
+| `initialize` | Returns server name, version, and capabilities |
+| `tools/list` | Returns all registered tools with their schemas |
+| `tools/call` | Calls the matching tool callback with the provided arguments |
+
+### Registering Multiple Tools
+
+```php
+fsl_mcp_tool(
+    name: 'search_products',
+    description: 'Search the product catalog',
+    schema: [
+        'type'       => 'object',
+        'properties' => [
+            'query' => ['type' => 'string', 'description' => 'Search term'],
+            'limit' => ['type' => 'integer', 'description' => 'Max results (default 10)'],
+        ],
+        'required' => ['query']
+    ],
+    callback: function(array $args): array {
+        return product_search($args['query'], $args['limit'] ?? 10);
+    }
+);
+
+fsl_mcp_tool(
+    name: 'get_order',
+    description: 'Retrieve an order by order ID',
+    schema: [
+        'type'       => 'object',
+        'properties' => ['order_id' => ['type' => 'string']],
+        'required'   => ['order_id']
+    ],
+    callback: function(array $args): array {
+        return order_find($args['order_id']);
+    }
+);
+
+dispatch_post('/', 'fsl_mcp_handle');
+run();
+```
+
+### Server Name
+
+Set a custom server name shown to AI agents during the handshake:
+
+```php
+option('mcp_server_name', 'My Product API');
+```
+
+### Adding Auth
+
+Use FSL's `before()` hook to add authentication:
+
+```php
+function before() {
+    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if ($token !== 'Bearer ' . option('mcp_api_key')) {
+        halt(UNAUTHORIZED, 'Invalid token');
+    }
+}
+```
 
 ---
 
@@ -395,149 +545,3 @@ Makes outbound HTTP requests. Returns `[http_code, curl_info, response_body]`.
 | `$authpassword` | string\|null | `null` | Basic auth password |
 | `$authtoken` | string\|null | `null` | Bearer token |
 | `$customheader` | array\|null | `null` | Additional headers |
-
----
-
-## AI / LLM Helpers
-
-FSL includes thin wrappers for the Anthropic and OpenAI chat APIs. Configure your keys in `config/fsl_config.php`:
-
-```php
-function configure() {
-    option('anthropic_api_key', getenv('ANTHROPIC_API_KEY'));
-    option('anthropic_model',   'claude-sonnet-4-6');
-
-    option('openai_api_key', getenv('OPENAI_API_KEY'));
-    option('openai_model',   'gpt-4o');
-}
-```
-
-### Anthropic
-
-```php
-$response = fsl_anthropic_chat([
-    ['role' => 'user', 'content' => 'Summarize this in one sentence: ' . $text]
-]);
-$answer = $response['content'][0]['text'];
-```
-
-With a system prompt and model override:
-
-```php
-$response = fsl_anthropic_chat(
-    messages:   [['role' => 'user', 'content' => $question]],
-    model:      'claude-opus-4-7',
-    max_tokens: 2048,
-    system:     'You are a helpful assistant. Be concise.'
-);
-```
-
-### OpenAI
-
-```php
-$response = fsl_openai_chat([
-    ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-    ['role' => 'user',   'content' => $question]
-]);
-$answer = $response['choices'][0]['message']['content'];
-```
-
-Both functions return the full decoded API response array and throw `RuntimeException` on missing keys or non-2xx responses.
-
----
-
-## MCP Server
-
-FSL can act as a [Model Context Protocol](https://modelcontextprotocol.io) server, exposing your app's functions as tools that AI agents (Claude Desktop, Cursor, etc.) can call directly.
-
-### Minimal MCP Server
-
-```php
-<?php
-require 'lib/fsl.php';
-
-fsl_mcp_tool(
-    name: 'get_user',
-    description: 'Look up a user by ID',
-    schema: [
-        'type'       => 'object',
-        'properties' => ['id' => ['type' => 'integer', 'description' => 'User ID']],
-        'required'   => ['id']
-    ],
-    callback: function(array $args): array {
-        return user_find($args['id']);
-    }
-);
-
-dispatch_post('/', 'fsl_mcp_handle');
-run();
-```
-
-That's a complete, spec-compliant MCP server.
-
-### How It Works
-
-`fsl_mcp_handle()` is a standard FSL controller that handles JSON-RPC 2.0 requests from AI agents:
-
-| JSON-RPC Method | What FSL does |
-|-----------------|---------------|
-| `initialize` | Returns server name, version, and capabilities |
-| `tools/list` | Returns all registered tools with their schemas |
-| `tools/call` | Calls the matching tool callback with the provided arguments |
-
-### Registering Multiple Tools
-
-```php
-fsl_mcp_tool(
-    name: 'search_products',
-    description: 'Search the product catalog',
-    schema: [
-        'type'       => 'object',
-        'properties' => [
-            'query' => ['type' => 'string', 'description' => 'Search term'],
-            'limit' => ['type' => 'integer', 'description' => 'Max results (default 10)'],
-        ],
-        'required' => ['query']
-    ],
-    callback: function(array $args): array {
-        return product_search($args['query'], $args['limit'] ?? 10);
-    }
-);
-
-fsl_mcp_tool(
-    name: 'get_order',
-    description: 'Retrieve an order by order ID',
-    schema: [
-        'type'       => 'object',
-        'properties' => ['order_id' => ['type' => 'string']],
-        'required'   => ['order_id']
-    ],
-    callback: function(array $args): array {
-        return order_find($args['order_id']);
-    }
-);
-
-dispatch_post('/', 'fsl_mcp_handle');
-run();
-```
-
-### Server Name
-
-Set a custom server name shown to AI agents during the handshake:
-
-```php
-option('mcp_server_name', 'My Product API');
-```
-
-### Adding Auth
-
-Use FSL's `before()` hook to add authentication:
-
-```php
-function before() {
-    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if ($token !== 'Bearer ' . option('mcp_api_key')) {
-        halt(UNAUTHORIZED, 'Invalid token');
-    }
-}
-```

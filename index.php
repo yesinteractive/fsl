@@ -2,144 +2,94 @@
 ##############################################################################
 #  requirements - must be included in your index.php
 ##############################################################################
-# 
 
 require_once 'lib/fsl.php';
 
 
 ##############################################################################
-#  configurations
-##############################################################################
-#  All in config directory
-
-##############################################################################
 #  code to run before route execution
 ##############################################################################
-# 
 
 function before($route)
 {
-  header("X-LIM-route-function: ".$route['callback']);
-  option('routecallback', $route['callback']);
-  layout('fsl_default_layout.php');
+    header("X-FSL-route-function: " . $route['callback']);
+    option('routecallback', $route['callback']);
 }
 
 ##############################################################################
-#  sample routes
+#  routes
 ##############################################################################
-# 
-#  routes and controllers
-# ----------------------------------------------------------------------------
-# Sample RESTFul map:
 #
 #  HTTP Method |  Url path         |  Controller function
 # -------------+-------------------+-------------------------------------------
-#   GET        |  /                |  hello_world
+#   GET        |  /                |  home            - framework identity + endpoint map
+#   POST       |  /chat            |  llm_chat        - LLM chat via Anthropic
+#   POST       |  /mcp             |  fsl_mcp_handle  - MCP server (JSON-RPC 2.0)
+#   GET        |  /api/status      |  api_status      - JSON health check
+#   GET        |  /jwt             |  jwt             - JWT encode/decode demo
+#   GET        |  /curl            |  curl            - HTTP client demo
 
 
-//basic hello world
-dispatch('/', 'hello_world');
+// Framework home - returns identity and available endpoints
+dispatch_get('/', 'home');
 
-//example showing a json REST response
-dispatch('/api', 'api');
+// LLM chat endpoint - POST {"message": "..."} to get an AI reply
+dispatch_post('/chat', 'llm_chat');
 
-//example showing JWT usage
-dispatch('/jwt', 'jwt');
+// MCP server - handles initialize, tools/list, tools/call (JSON-RPC 2.0)
+fsl_mcp_tool(
+    name: 'get_status',
+    description: 'Get the current server status and timestamp',
+    schema: [
+        'type'       => 'object',
+        'properties' => (object)[],
+        'required'   => [],
+    ],
+    callback: function(array $args): array {
+        return [
+            'status'    => 'ok',
+            'timestamp' => date('c'),
+            'framework' => 'FSL',
+        ];
+    }
+);
 
-//example showing fsl_curl http request
-dispatch('/curl', 'curl');
+fsl_mcp_tool(
+    name: 'echo_message',
+    description: 'Echo a message back - useful for testing MCP connectivity',
+    schema: [
+        'type'       => 'object',
+        'properties' => [
+            'message' => ['type' => 'string', 'description' => 'The message to echo back'],
+        ],
+        'required' => ['message'],
+    ],
+    callback: function(array $args): array {
+        return [
+            'echo'      => $args['message'],
+            'timestamp' => date('c'),
+        ];
+    }
+);
 
-//example showing fsl_hash
-dispatch('/hash', 'create_hash');
+dispatch_post('/mcp', 'fsl_mcp_handle');
 
+// API health check
+dispatch_get('/api/status', 'api_status');
 
-//show session 
-dispatch('/showip/:what/:who', 'showip');
-   
-//kill session 
-dispatch('/kill/:who', 'kill_session');
- 
-//HTTP POST route example. FSL also supports PUT, PATCH, DELETE
-dispatch_post('/welcome/:name', 'welcome');
- 
-//other random examples
-dispatch('/are_you_ok/:name', 'are_you_ok');
- 
-    
-dispatch('/how_are_you/:name', 'how_are_you');
- 
-  
-dispatch('/images/:name/:size', 'image_show');
- 
+// Utility demos
+dispatch_get('/jwt', 'jwt');
+dispatch_get('/curl', 'curl');
 
-dispatch('/*.jpg/:size', 'image_show_jpeg_only');
- 
 
 ##############################################################################
 #  run after function
 ##############################################################################
-# 
- 
-  
+
 function after($output, $route)
 {
-  // Uncomment to show request params and response timing
-  // Helpful for debuggin
-  /*
-  $time = number_format( microtime(true) - LIM_START_MICROTIME, 6);
-  $output .= "\n<!-- page rendered in $time sec., on ".date(DATE_RFC822)." -->\n";
-  $output .= "<!-- for route\n";
-  $output .= print_r($route, true);
-  $output .= "-->";
-  
-  */
-  
-  return $output;
+    return $output;
 }
 
 
 run();
-
-##############################################################################
-#  Data Models
-##############################################################################
-#  
-
-##############################################################################
-#  layouts (views) and html templates
-##############################################################################
-#  Layouts are autoloaded from views directory or can be referended
-#  as a function like below.
-
-function html_my_layout($vars){ extract($vars);?> 
-
-<!doctype html>
-<html lang="en">
-  <body>
-    Hello world!
-  </body>
-</html>
-
-<?php  }
-
-function html_welcome($vars){ extract($vars);?> 
-<h3>Hello <?php echo $name?>!</h3>
-<p><a href="<?php echo url_for('/how_are_you/', $name)?>">How are you <?php echo $name?>?</a></p>
-<hr>
-<p><a href="<?php echo url_for('/images/soda_glass.jpg')?>">
-   <img src="<?php echo url_for('/images/soda_glass.jpg/thumb')?>"></a></p>
-<?php }  
-
-##############################################################################
-# custom error declaration
-##############################################################################
-# 
-// Custom 404 error example
-/*function not_found($errno, $errstr, $errfile, $errline){ 
-     
- echo "<center><img src=" . url_for('//_lim_public/img/404.gif') . " border=0><BR><BR>Your request for" . $errstr . " came up ghosts.</center>"  ;  
-} 
-*/
-
-
-?>
