@@ -1,926 +1,670 @@
 ## FSL: Fresh Squeezed Limonade PHP Micro-Framework
-![alt text](https://raw.githubusercontent.com/yesinteractive/fsl/master/public/banner-fsl.png "FSL Fresh Squeezed Limonade PHP Microframework for Microservices")
+![FSL banner](https://raw.githubusercontent.com/yesinteractive/fsl/master/public/banner-fsl.png "FSL Fresh Squeezed Limonade PHP Microframework for Microservices")
 
 [![GitHub release](https://img.shields.io/github/release/yesinteractive/fsl?style=for-the-badge)](https://github.com/yesinteractive/fsl)
 ![MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/fsl/fsl?style=for-the-badge)
 
+FSL is a lightweight PHP micro-framework for building web apps, REST APIs, and microservices. It runs great in Docker, K8s, and OpenShift.
 
-FSL is an extremely lightweight and flexible PHP Micro-framework, which provides a great rapid development framework for Web apps, REST API's and Microservices.  FSL based apps work great in containerized application environments such as Docker, K8s, Openshift, and more.
+---
 
+## Quick Start
 
+```php
+<?php
+require 'lib/fsl.php';
 
-### Why use FSL? ### 
+dispatch('/', function() {
+    return html('Hello, world!');
+});
 
-Controller callbacks can be a function, an object method, a static method or a closure. See php documentation to learn more about the callback pseudo-type. This 
-flexibility gives developers free range to develop class or classless based apps MVC based applications or more simpler, less structured, functional based applications. This flexibility I find is very useful
-for rapid development of REST based applications and rapid development of microservices.
+dispatch_post('/greet/:name', function() {
+    $name = params('name');
+    return json(['message' => "Hello, $name!"]);
+});
 
-### FSL Helper Functions ###
-See `/lib/fsl_functions.php` for a list of helper functions provided by FSL (session management, JWT tokens, encryption, CSRF protection, and more). See the [FSL Helper Functions](#fsl-helper-functions) section below for full documentation.
-
-FSL provides additional security to deal with XSS and other threats.
-
-Enjoy!
-
-## FSL Installation ##
-
-### With Docker ###
-
-
-Docker image is Alpine 3.11 based running on Apache. The container exposes both ports 80 an 443 with a self signed certificate. If you wish to alter the container configuration, feel free to use the Dockerfile in this repo (https://github.com/yesinteractive/fsl/blob/master/Dockerfile). Otherwise, you can pull the latest image from DockerHub with the following command:
+run();
 ```
+
+That's it. Include one file, define routes, call `run()`.
+
+---
+
+## Why FSL?
+
+- **Zero setup overhead** — one `require`, no boilerplate, no config required to get started
+- **Flexible callbacks** — routes accept functions, closures, static methods, or object methods
+- **Built-in security helpers** — AES-256-CBC encryption, secure sessions, XSS filtering, CSRF tokens, password hashing, JWT
+- **REST-ready** — full HTTP verb support (GET, POST, PUT, PATCH, DELETE), JSON responses, built-in HTTP client
+- **Docker-friendly** — official Docker image available, works out of the box in containerized environments
+- **No framework lock-in** — plain PHP templates, no ORM required, bring your own database layer
+
+---
+
+## Installation
+
+### Docker
+
+```bash
 docker pull yesinteractive/fsl
-```
-Typical basic usage (below example exposes HTTP on port 8100 and HTTPS on 8143):
 
-```
-$ docker run -d \
-  -p 8100:80 \
-  -p 8143:443 \
-  yesinteractive/fsl
+# Expose HTTP on 8100, HTTPS on 8143
+docker run -d -p 8100:80 -p 8143:443 yesinteractive/fsl
 ```
 
-Typical usage in Dockerfile:
+Use as a base image:
 
-```
+```dockerfile
 FROM yesinteractive/fsl
 RUN echo <your commands here>
 ```
 
-
-
-### With Composer ###
-
-It's recommended that you use [Composer](https://getcomposer.org/) to install FSL. Navigate into your project's root directory and execute the bash command shown below. This command downloads the FSL Framework and its third-party dependencies into your project's vendor/ directory.
+### Composer
 
 ```bash
-$ composer require fsl/fsl 
-```
-You can also install FSL by referencing it in your project's `composer.json`:
-
-```json
-"fsl/fsl":">0.1"
+composer require fsl/fsl
 ```
 
-
-This will install FSL and all required dependencies. FSL requires PHP 8.0 or newer.
-
-Require the Composer autoloader into your PHP script, and you are ready to start using FSL.
+Then include the autoloader:
 
 ```php
-<?php
-
 require 'vendor/autoload.php';
-
 ```
 
-### Without Composer ###
+### Without Composer
 
-If not using Composer, just download the FSL files in your web directory and be sure to include the FSL main library file:
+Download the repo and include the main file directly:
 
 ```php
-<?php
-
 require 'lib/fsl.php';
-
 ```
 
-## Getting Up and Running ##
-> Please note that if you are using the FSL Docker image, proceed to step 5.
-
-1. Once files are in place on web server, make sure to have URL rewriting enabled in Apache. 
-2. WEB SERVER CONFIGURATION: Verify that the directory FSL is placed in on your webserver has the AllowOverride directive set to `ALL (AllowOverride All)` in the Apache `<Directory>` configuration. If this is not set then the included `.htaccess` file will not be read and routes will not be execute correctly.
-3. .HTACCESS CONFIGURATION: Update the RewriteBase directive in the included `.htaccess` file to accommodate your app if it is installed in a web sub directory (not root). If installing FSL in a root web directory, then nothing needs to be changed. If you are installing FSL in a sub directory such as /foo, then make the following change to the .htaccess file: 
-```
-RewriteBase /foo
-```
-
-4. FSL CONFIG FILE: Edit the /config/fsl_config.php file to suit your needs. IMPORTANT: Be sure to set the correct Base URI where FSL is installed. If you are installing FSL in a sub directory on your webserver such as /foo, then make the following change to the /config/fsl_config.php file: 
-```
-option('base_uri', "/foo"); //set if app is not in web root directory but in a subdirectory
-```
-5. The code comes with an example app (index.php) with several route and controller (/controllers/fsl_controllers.php) examples to demonstrate the flexibility of the framework. Here are some examples of default mappings configured as examples:
-
-HTTP Method | URL Path | Controller Function | Demo
------------- | ------------- | ------------- | -------------
-GET | / | hello_world | Sample Home Page, Creates Session
-GET | /api | api | Microservice Example (JSON Response)
-GET | /showip | showip | Showcases encrypt/decrypt functions
-
-
-6. Once configured, direct your browser to the location where you installed FSL and you should see the following:
-![alt text](https://github.com/yesinteractive/fsl/blob/master/public/launchpage.png "FSL Fresh Squeezed Limonade PHP Microframework Landing Page")
-
-
-
+FSL requires **PHP 8.0 or newer**.
 
 ---
 
-# FSL Concepts
-   
-## Routes ##
+## Project Setup
 
-Routes combine 
+> Skip to step 4 if using the FSL Docker image — it handles steps 1–3 automatically.
 
-* an HTTP method 
-* with an URL matching pattern 
-* and a callback parameter
+1. **Apache — enable mod_rewrite** and set `AllowOverride All` on your app directory so the included `.htaccess` is read.
 
-So they make the glue between an URL + a HTTP method, and the code provided in a callback controller.
+2. **Subdirectory installs** — if FSL is not in your web root, update the `RewriteBase` in `.htaccess`:
+    ```
+    RewriteBase /myapp
+    ```
+
+3. **Nginx** — add to your server block:
+    ```nginx
+    location / { try_files $uri $uri/ @rewrite; }
+    location @rewrite { rewrite ^/(.*)$ /index.php?u=$1&$args; }
+    ```
+
+4. **Config** — edit `config/fsl_config.php`. If installed in a subdirectory, set:
+    ```php
+    option('base_uri', '/myapp');
+    ```
+    Generate and set a unique encryption key:
+    ```bash
+    php -r "echo base64_encode(random_bytes(32));"
+    ```
+    ```php
+    option('global_encryption_key', 'your-generated-key-here');
+    ```
+
+5. Open a browser and hit your install URL. The example app (`index.php`) includes working demo routes.
+
+---
+
+## Routing
+
+Routes map an HTTP method + URL pattern to a callback. They are matched in the order declared.
+
 ```php
-    dispatch('/', 'my_get_function');
-    # same as dispatch_get('/', 'my_get_function');
-        function my_get_function()
-        {
-            // Show something
-            // with the code of this callback controller
-        }
-    
-    dispatch_post('/', 'my_post_function'); 
-        function my_post_function()
-        {
-            // Create something
-        }
-        
-    dispatch_put('/', 'my_update_function'); 
-        function my_update_function()
-        {
-            // Update something
-        }
-        
-    dispatch_delete('/', 'my_delete_function'); 
-        function my_delete_function()
-        {
-            // Delete something
-        }
+dispatch('/', 'my_function');           // GET (default)
+dispatch_get('/users', 'list_users');
+dispatch_post('/users', 'create_user');
+dispatch_put('/users/:id', 'update_user');
+dispatch_patch('/users/:id', 'patch_user');
+dispatch_delete('/users/:id', 'delete_user');
 
-    dispatch_patch('/', 'my_patch_function');
-        function my_patch_function()
-        {
-            // Patch something
-        }
+run();
 ```
 
-Routes are matched in the order they are declared.
-The search is performed with a path given through browser URL:
+### URL Patterns
 
-    http://localhost/my_app/?u=/my/path
-    http://localhost/my_app/?uri=/my/path
-    http://localhost/my_app/index.php?/my/path
-    http://localhost/my_app/?/my/path
+| Pattern | Example match | Access value |
+|---------|--------------|______________|
+| `/hello/:name` | `/hello/alice` | `params('name')` → `'alice'` |
+| `/files/*.*` | `/files/readme.txt` | `params(0)` → `'readme'`, `params(1)` → `'txt'` |
+| `/writing/*/to/*` | `/writing/email/to/bob` | `params(0)`, `params(1)` |
+| `/files/**` | `/files/a/b/c.txt` | `params(0)` → `'a/b/c.txt'` |
+| `^/items/(\d+)` | `/items/42` | `params(0)` → `'42'` |
 
-When `PUT`,`DELETE` or `PATCH` methods are not supported (like in HTML form submission), you can use the `_method` parameter in `POST` requests: it will override the `POST` method.
+Named wildcards:
+
+```php
+dispatch(array('/say/*/to/**', array('what', 'name')), 'greet');
+function greet() {
+    // GET /say/hello/to/alice
+    $what = params('what'); // 'hello'
+    $name = params('name'); // 'alice'
+}
+```
+
+Default parameter values:
+
+```php
+dispatch('/hello/:name', 'hello', ['params' => ['greeting' => 'Hi']]);
+function hello($greeting, $name) {
+    return html("$greeting, $name!");
+}
+```
+
+### Callback Types
+
+```php
+dispatch('/a', 'my_function');              // named function
+dispatch('/b', 'MyClass::method');          // static method
+dispatch('/c', [$obj, 'method']);           // object method
+dispatch('/d', ['MyClass', 'method']);      // static method (array form)
+dispatch('/e', function() {                 // closure
+    return html('Hello!');
+});
+```
+
+### HTML Form Method Override
+
+HTML forms only support GET and POST. Use a hidden `_method` field to send PUT, PATCH, or DELETE:
+
 ```html
-    <form action="<?php echo url_for('profile_update'); ?>" method="post">
-        <p><input type="hidden" name="_method" value="PUT" id="_method"></p>
-        <p>... your form fields</p>
-        <p><input type="submit" value="Update"></p>
-    </form>
-```    
-
-### Routing patterns and parameters ###
-
-Patterns may include named parameters. Associated values of those parameters are available with the `params()` function.
-
-    dispatch('/hello/:name', 'hello');
-        function hello()
-        {
-            $name = params('name');
-            return 'Hello $name';
-        }
-
-Patterns may also include wildcard parameters. Associated values are available through numeric indexes, in the same order as in the pattern.
-
-    dispatch('/writing/*/to/*', 'my_letter');
-        function my_letter()
-        {
-            # Matches /writing/an_email/to/joe
-            $type = params(0); # "an_email"
-            $name = params(1); # "joe"
-            # ...
-        }
-        
-    dispatch('/files/*.*', 'share_files');
-        function share_files()
-        {
-            # matches /files/readme.txt
-            $ext = params(1);
-            $filename = params(0).".".$ext;
-            # ...
-        }
-
-Unlike the simple wildcard character `*`, the double wildcard character `**` specifies a string that may contain a `/`
-
-    dispatch('/files/**', 'share_files')
-        function share_files()
-        {
-            # Matches /files/my/own/file.txt
-            $filename = params(0); # my/own/file.txt
-        }
-
-Pattern may also be a regular expression if it begins with a `^`
-
-    dispatch('^/my/own/(\d+)/regexp', 'my_func');
-        function my_func()
-        {
-            # matches /my/own/12/regexp
-            $num = params(0);
-        }
-        
-Wildcard parameters and regular expressions may be named, too.
-
-    dispatch(array('/say/*/to/**', array("what", "name")), 'my_func');
-        function my_func()
-        {
-            # Matches /say/hello/to/joe
-            $what = params('what');
-            $name = params('name');
-        }
-
-You can also provide default parameter values that are merged with and overriden by the pattern parameters.
-
-    $options = array('params' => array('firstname'=>'bob'));
-    dispatch('/hello/:name', 'hello', $options);
-        function hello($firstname, $name) # default parameters first
-        {
-            return 'Hello $firstname $name';
-        }
-
-
-### Callback controllers ###
-
-The callback can be a function, an object method, a static method or a closure.
-See [php documentation](http://php.net/manual/en/language.pseudo-types.php#language.types.callback) to learn more about the callback pseudo-type.
-
-    # will call my_hello_function() function
-    dispatch('/hello', 'my_hello_function');
-
-    # Static class method call, MyClass::hello();
-    dispatch('/hello', array('MyClass', 'hello'));
-
-    # Object method call, $obj->hello();
-    dispatch('/hello', array($obj, 'hello'));
-
-    # Static class method call, MyClass::hello();
-    dispatch('/hello', 'MyClass::hello');
-
-    # Using a closure
-    dispatch('/hello', function(){
-      return 'Hello World!';
-    });
-
-Callback controllers return the rendered view output (see _Views and templates_).
-
-They can take the pattern parameters as arguments
-
-    dispatch('/hello/:firstname/:name', 'hello');
-        function hello($firstname, $name)
-        {
-            # $firstname parameter equals params('firstname');
-            # and $name parameter equals params('name');
-            return 'Hello $firstname $name';
-        }
-  
-
-Callbacks called by routes can be written anywhere before the execution of the `run()` function. They can also be grouped in controller files stored in a `controllers/` folder.
-
-    /                   # site root
-     - index.php        # file with routes declarations and run()
-     + controllers/
-         - blog.php     # functions for blog: blog_index(), blog_show(),
-                        #  blog_post()...
-         - comments.php # comments_for_a_post(), comment_add()...
-
-
-
-This folder location can be set with the `controllers_dir` option.
-
-    option('controllers_dir', dirname(__FILE__).'/other/dir/for/controllers');
-    
-
-You can also define `autoload_controller` function to load controllers in your own way:
-
-    function autoload_controller($callback) 
-    { 
-       # If $callback, the callback function defined in matching route, 
-       # begins with 'admin_', then we load controllers from
-       # the admin sub-directory in the controllers directory.
-       # Else we load controllers the normal way from 'controllers_dir'.
-       
-       $path = option('controllers_dir'); 
-       if(strpos($callback, "admin_") === 0) $path = file_path($path, 'admin'); 
-       require_once_dir($path); 
-    }
-
-### Url rewriting ###
-
-FSL supports url rewriting.
-
-If you use Apache, with a `.htaccess` in your app folder
-
-    <IfModule mod_rewrite.c>
-      Options +FollowSymlinks
-      Options +Indexes
-      RewriteEngine on
-      
-      # if your app is in a subfolder
-      # RewriteBase /my_app/ 
-
-      # test string is a valid files
-      RewriteCond %{SCRIPT_FILENAME} !-f
-      # test string is a valid directory
-      RewriteCond %{SCRIPT_FILENAME} !-d
-
-      RewriteRule ^(.*)$   index.php?uri=/$1    [NC,L,QSA]
-      # with QSA flag (query string append),
-      # forces the rewrite engine to append a query string part of the
-      # substitution string to the existing string, instead of replacing it.
-    </IfModule>
-    
-If you use Nginx, add the following to your server declaration
-
-    server {
-        location / {
-            
-            try_files $uri $uri/ @rewrite;
-        }
-        location @rewrite {
-            rewrite ^/(.*)$ /index.php?u=$1&$args;
-        }
-    }
-
-then remember to set explicitly the `option('base_uri')` in your configure() function:
-
-    option('base_uri', '/my_app'); # '/' or same as the RewriteBase in your .htaccess
-
-You can access your site with urls like `http://your.new-website.com/my/fsl/path` instead of `http://your.new-website.com/?/my/fsl/path`.
-
-
-## Views and templates ##
-
-Template files are located by default in `views/` folder.
-Views folder location can be set with the `views_dir` option.
-
-    option('views_dir', dirname(__FILE__).'/other/dir/for/views');
-
-To pass variables to templates, we use the function `set ()`
-
-    set('name', 'John Doe');
-    render('index.html.php');
-    
-Variables may also be passed directly:
-
-    render('index.html.php', null, array('name' => 'John Doe' ));
-    
-
-
-`set_or_default` function allows passing a variable, and if it's empty, a default value. It is really useful for the assignment of optional parameters extracted from the url using the `params()` function.
-
-    dispatch('/hello/:name', 'hello');
-        function  hello()
-        {
-            # matching /hello/
-            set_or_default('name', params('name'),'John');
-            return render('Hello %s!'); // returns 'Hello John!' because params('name') was empty. Else it would have returned params('name') value.
-        }
-    
-As you can notice, final output is returned by your controller. So remember to explicitly return your view in your controller with the `return` keyword!
-    
-    
-
-### Layouts ###
-
-Templates may be rendered inside another template: a layout.
-
-Layout may be set with the `layout` function:
-
-    layout('default_layout.php');
-
-or directly with the template rendering function    
-
-    render('index.html.php', 'default_layout.php');
-
-
-If layout value is `null`, rendering will be done without any layout.
-
-    render('index.html.php', null);
-
-### Formatted strings and inline templates ###
-
-Formatted string can be used like with  [`sprintf`](http://php.net/manual/function.sprintf.php):
-
-    set('num', 5);
-    set('where', 'tree');
-    return render('There are %d monkeys in the %s') // returns 'There are 5 monkeys in the tree'
-
-It's also possible to provide a function name as a template. By this way, for example, we can produce a single file application.
-
-    function html_message($vars){ extract($vars);?>
-        <h1>Title: <?php echo h($title); ?></h1>
-        <p>Message:<br>
-           <?php echo h($msg); ?></p>
-    <?}
-    
-    // in a request handling function
-    set('title', 'Hello!');
-    set('msg', 'There are 100 monkeys in the Chennai and bangalore');
-    return render('html_message');
-
-### HTML Templates ###
-
-`html` function is used in the same way as `render`.
-A header specifies the proper HTTP `Content-type` (`text/html`) and encoding setting defined through options (utf8 by default).
-
-    html('my_template.html.php');
-
-### Templates XML ###
-
-`xml` function is used in the same way as `render`.
-A header specifies the proper HTTP `Content-type` (`text/xml`) and encoding setting defined through options (utf8 by default).
-
-    xml('my_template.xml.php');
-
-### Templates CSS ###
-
-`css` function is used in the same way as `render`.
-A header specifies the proper HTTP `Content-type` (`text/css`) and encoding setting defined through options (utf8 by default).
-
-    css('screen.css.php');
-
-### Templates JS ###
-
-`js` function is used in the same way as `render`.
-A header specifies the proper HTTP `Content-type` (`application/javascript`) and encoding setting defined through options (utf8 by default).
-
-    js('app.js.php');
-
-### Templates TXT ###
-
-`txt` function is used in the same way as `render`.
-A header specifies the proper HTTP `Content-type` (`text/plain`) and encoding setting defined through options (utf8 by default).
-
-    txt('index.txt.php');
-    
-### Templates JSON ###
-
-`json` is used the same way as 
- [`json_encode`](http://php.net/manual/function.json-encode.php) function, and returns a string containing the JSON representation of a value.
-A header specifies the proper HTTP `Content-type` (`application/x-javascript`) and encoding setting defined through options (utf8 by default).
-
-    json($my_data);
-
-### Serving files ###
-
-The `render_file` function can render a file directly to the output buffer.
-    
-    render_file(option('public_dir').'foo.jpg');
-
-A header specifies the proper HTTP `Content-type` depending on the file extension, and for text files, encoding setting defined through options (utf8 by default).
-
-Output is temporized so that it can easily handle large files.
-
-### Partials ###
-
-The `partial` function is a shortcut to render with no layout. Useful for managing reusable blocks and keeping them in separate files.
-
-This code
-
-    partial('my_posts.php', array('posts'=>$posts));
-    
-is the same as
-
-    render('my_posts.php', null, array('posts'=>$posts));
-
-### Captures ###
-
-The `content_for` function allows you to capture a block of text in a view. Then the captured block will be available for the layout. This is useful for management of layout regions like a sidebar or to set javascript or stylesheet files that are specific to a view.
-
-
-For example with this layout:
-
-    <div id="content">
-      <div id="main">
-        <?php echo $content; ?>
-      </div>
-      <div id="side">
-        <?php if (isset($side)) echo $side; ?>
-      </div>
-    </div>
-    
-And in your view:
-
-    <p>My main content</p>
-    
-    <?php content_for('side'); ?>
-    <ul>
-      <li><a href="<?php echo url_for('/pages/item1')?>">Item 1</a></li>
-      <li><a href="<?php echo url_for('/pages/item2')?>">Item 2</a></li>
-    </ul>
-    <?php end_content_for(); ?>
-
-Rendered result is:
-
-    <div id="content">
-      <div id="main">
-        <p>My main content</p>
-      </div>
-      <div id="side">
-        <ul>
-          <li><a href="?/pages/item1">Item 1</a></li>
-          <li><a href="?/pages/item1">Item 2</a></li>
-        </ul>
-      </div>
-    </div>
-
-
-Use captures with partials, it will help you to organize your views and will keep you from having to copy/paste the same code many times.
-
-## Hooks and filters ##
-
-FSL allows the user to define functions to enhance framework behaviour with its own needs.
-
-Some of those, like the `before` hook and the `after` filter are commonly used, and others are only for advanced usage that might require a good comprehension of FSL internals.
-
-
-### Before ###
-
-You can define a `before` function that will be executed before each request. This is very useful to define a default layout or for passing common variables to the templates.
-
-    function before($route)
-    {
-        layout('default_layout.php');
-        set('site_title', 'My Website');
-    }
-
-
-The current matching route is also passed to the before function, so you can test it. It's an array as returned by the internal `route_find` function, with these values: 
-
-* `method` (HTTP method)
-* `pattern` (regexp pattern)
-* `names` (params names)
-* `callback` (callback)
-* `options` (route options)
-* `params` (current params)
-
-### After ###
-
-An `after` output filter is also available. It's executed after each request and can apply a transformation to the output (except for `render_file` outputs  which are sent directly to the output buffer).
-
-    function after($output){
-      $config = array('indent' => TRUE,
-                      'output-xhtml' => TRUE,
-                      'wrap' => 200);
-      
-      $encoding = strtoupper(str_replace('-','', option('encoding')));
-      $tidy = tidy_parse_string($output, $config, $encoding);
-      $tidy->cleanRepair();
-      return $tidy;
-    }
-    
-The current executed route is also available for `after` function.
-
-### Before render ###
-
-You can define a `before_render` function that will filter your view before rendering it.
-
-The first three parameters are the same as those passed to the `render` function:
-
-* `$content_or_func`: the view string
-* `$layout`: current layout path
-* `$locals`: variables passed directly to the `render` function
-
-Last parameter, `$view_path` is by default `file_path(option('views_dir'), $content_or_func);`
-
-    function before_render($content_or_func, $layout, $locals, $view_path)
-    {
-      # Transform $content_or_func, $layout, $locals or $view_path.
-      # Then return there new values
-      return array($content_or_func, $layout, $locals, $view_path);
-    }
-
-### Autorender ###
-
-You can define your own `autorender` function to make automatic rendering  depending on current matching route. It will be executed if your controller returns a null output.
-
-    dispatch('/', 'hello');
-    function hello()
-    {
-        # process some stuff...
-        set('name', 'Bob');
-        
-        # but don't return anything
-        # ( like if you were ending this function with return null; )
-    }
-    
-    function autorender($route)
-    {
-        $view = $route['callback'] . ".html.php";
-        return html($view);
-    }
-    
-In this example, when url `/` is called, `hello()` is executed and then `autorender()` renders the matching `hello.html.php` view.
-
-### Before exit ###
-
-If you define a `before_exit`, it is called at the beginning of the stop/exit process (`stop_and_exit` function called automatically at FSL application termination).
-
-    function before_exit($exit)
-    {
-        # $exit is the same parameter as the one passed to `stop_and_exit`.
-        # If it's false, the exit process will not be executed, 
-        # only the stop instructions
-        # by default it is true
-    }
-
-### Before sending a header ###
-
-You can define a `before_sending_header` function that will be called before FSL emits a header() call. This way you can add additional headers:
-
-    dispatch('/style.css', 'css');
-    function css()
-    {
-        # Generate css file and output
-        return css('style.css.php');
-    }
-
-    function before_sending_header($header)
-    {
-        if (strpos($header, 'text/css') !== false)
-        {
-            # intercept text/css content-type and add caching to the headers
-            send_header("Cache-Control: max-age=600, public");
-        }
-    }
-
-__Caution__: Take care not to cause a loop by repeatedly calling `send_header()` from the `before_sending_header()` function!
-
-
-## Configuration ##
-
-You can define a `configure` that will be executed when application is launched (at the beginning of the `run` execution).
-You can define options inside it, a connection to a database ...
-
-    function configure()
-    {
-        $env = $_SERVER['HTTP_HOST'] == "localhost" ? ENV_DEVELOPMENT : ENV_PRODUCTION;
-        option('env', $env);
-        if(option('env') > ENV_PRODUCTION)
-    	{
-    		option('dsn', 'sqlite:db/development.db');
-    	}
-    	else
-    	{
-    	    option('dsn', 'sqlite:db/production.db');
-    	}
-        $GLOBALS['my_db_connexion'] = new PDO(option('dsn'));
-    }
-
-PHP files contained in the `option('lib_dir')` folder (`lib/` by default) are loaded with [`require_once`](http://php.net/manual/function.require-once.php) just after executing `configure`. So you can place in this folder all your PHP libraries and functions so that they will be loaded and available at application launch.
-
-## Options ##
-
-The `option` function allows you to define and access the options of the application.
-
-    option('env', ENV_PRODUCTION);
-    option('env'); // return ENV_PRODUCTION value
-    
-If the name of option is not specified, it returns an array of all the options set.
-
-You can use it to manage FSL options and your own custom options in your application.
-
-Default FSL options have the following values:
-
-    option('root_dir',        $root_dir); // this folder contains your main application file
-    option('base_path',       $base_path);
-    option('base_uri',        $base_uri); // set it manually if you use url_rewriting
-    option('fsl_dir',         dirname(__FILE__).'/'); // this folder contains the fsl.php main file
-    option('fsl_views_dir',   dirname(__FILE__).'/fsl/views/');
-    option('fsl_public_dir',  dirname(__FILE__).'/fsl/public/');
-    option('public_dir',      $root_dir.'/public/');
-    option('views_dir',       $root_dir.'/views/');
-    option('controllers_dir', $root_dir.'/controllers/');
-    option('lib_dir',         $root_dir.'/lib/');
-    option('error_views_dir', option('fsl_views_dir'));
-    option('env',             ENV_PRODUCTION);
-    option('debug',           true);
-    option('session',         LIM_SESSION_NAME); // true, false or the name of your session
-    option('encoding',        'utf-8');
-    option('x-sendfile',      0); // 0: disabled
-
-## Sessions ##
-
-Session starts automatically by default. Then you can access session variables like you used to do, with `$_SESSION` array.
-
-You can disable sessions with the `session` option.
-
-### Flash ###
-
-Flash is a special use of sessions. A flash value will be available only on next request and will be deleted after. It's very useful to raise errors on a form or to notice a successful action.
-
-* `flash($name, $value...)` defines a flash for the next request
-* in views, you can get current flash values with the `$flash` array or `flash_now($name)` function.
-
-## Helpers ##
-
-See sources or api for more about all available helpers.
-
-### url_for ###
-
-You can use the `url_for` function for rendering FSL urls. They will be well formed from whatever folder in the document root your application is installed on your web server.
-
-    # with option('base_uri', '?')
-    url_for('one', 'two', 'three'); # returns ?/one/two/three
-    url_for('one', 'two', array('page' => 1)); # returns ?/one/two&amp;page=2
-    
-
-If you want to use url rewriting, you need to explicitly set the `base_uri` option ( default is `/your_file_path/?`)
-
-
-## Halting and error handling ##
-
-### Halt ###
-
-You can stop immediately the execution of the application with the `halt` function. Errors will be handled by default FSL error handlers or those you have defined.
-
-    halt(NOT_FOUND);
-    halt("An error occurred in my app...");
-
-### Not Found ###
-
-By default, displays the `not_found` error output function and sends a _`404 NOT FOUND`_ HTTP header.
-
-    halt(NOT_FOUND);
-    halt(NOT_FOUND, "This product doesn't exists.");
-    
-To define a new view for this error, you can simply declare a `not_found` function.
-
-    function not_found($errno, $errstr, $errfile=null, $errline=null)
-    {
-        set('errno', $errno);
-        set('errstr', $errstr);
-        set('errfile', $errfile);
-        set('errline', $errline);
-        return html("show_not_found_errors.html.php");
-    }
-    
-### Server Error ###
-
-By default, displays the `server_error` error output function and sends a _`500 INTERNAL SERVER ERROR`_ HTTP header.
-
-    halt();
-    halt('Breaking bad!');
-    halt(SERVER_ERROR, "Not good...");
-    trigger_error("Wrong parameter", E_USER_ERROR);
-    
-PHP errors are also caught and sent to this error handler output.
-
-To define a new view for this error, you can simply declare a `server_error` function.
-
-    function server_error($errno, $errstr, $errfile=null, $errline=null)
-    {
-        $args = compact('errno', 'errstr', 'errfile', 'errline');	
-        return html("show_server_errors.html.php", error_layout(), $args);
-    }
-
-### Error layout ###
-
-Allows you to define and access a layout dedicated to errors.
-
-    error_layout('error_layout.php');
-    error_layout(); // return 'error_layout.php'
-
-### Error handling ###
-
-In addition to the common `NOT_FOUND` and `SERVER_ERROR` error displays, FSL can redirect precise errors to your own functions.
-
-    error(E_USER_WARNING, 'my_notices')
-        function my_notices($errno, $errstr, $errfile, $errline)
-        {
-            // storing php warnings in a log file
-            // ...
-            status(SERVER_ERROR);
-            return html('<h1>Server Error</h1>');
-        }
-        
-`E_LIM_HTTP` means all HTTP errors
-
-    error(E_LIM_HTTP, 'my_http_errors')
-        function my_http_errors($errno, $errstr, $errfile, $errline)
-        {
-            status($errno);
-            return html('<h1>'.http_response_status_code($errno).'</h1>');
-        }
-    
-`E_LIM_PHP` means all PHP errors (sent by PHP or raised by the user through [`trigger_error`](http://php.net/manual/function.trigger-error.php) function).
-
-## Other useful functions ##
-
-FSL also provides a useful set of functions that can help you managing files, HTTP, and more. See the [source code](https://github.com/yesinteractive/fsl/blob/master/lib/fsl.php) at section **7. UTILS**.
+<form method="post" action="<?php echo url_for('/users/42'); ?>">
+    <input type="hidden" name="_method" value="PUT">
+    <!-- fields -->
+    <button type="submit">Update</button>
+</form>
+```
+
+### Controllers Directory
+
+Callbacks can live in any PHP file inside `controllers/` — FSL auto-loads that directory before executing a route. Organize freely:
+
+```
+index.php          ← routes + run()
+controllers/
+  users.php        ← user_list(), user_show(), user_create() ...
+  posts.php        ← post_index(), post_show() ...
+```
+
+Custom load path:
+
+```php
+option('controllers_dir', __DIR__ . '/src/controllers');
+```
+
+Custom loader (e.g. load admin controllers from a sub-folder):
+
+```php
+function autoload_controller($callback) {
+    $path = option('controllers_dir');
+    if (str_starts_with($callback, 'admin_')) $path .= '/admin';
+    require_once_dir($path);
+}
+```
 
 ---
 
-# FSL Helper Functions
+## Views & Templates
 
-FSL provides a set of helper functions in `/lib/fsl_functions.php` for common tasks like encryption, sessions, JWT, HTTP calls, and CSRF protection. All functions are available globally once FSL is loaded.
-
-## Encryption ##
+### Passing Variables
 
 ```php
-// Encrypt a string (uses AES-256-CBC). Key defaults to option('global_encryption_key').
-$encrypted = fsl_encrypt('my secret value');
-$encrypted = fsl_encrypt('my secret value', 'optional-custom-key');
+// Set variables before rendering
+set('title', 'My Page');
+set('items', $array);
+return render('page.html.php'); // variables available in template
 
-// Decrypt a previously encrypted string
-$plain = fsl_decrypt($encrypted);
-$plain = fsl_decrypt($encrypted, 'optional-custom-key');
+// Or pass inline
+return render('page.html.php', null, ['title' => 'My Page']);
+
+// Set with a fallback default
+set_or_default('name', params('name'), 'Guest');
 ```
 
-Set your encryption key in `config/fsl_config.php`:
+### Layouts
+
 ```php
-option('global_encryption_key', 'your-base64-encoded-32-byte-key');
-// Generate a key: php -r "echo base64_encode(random_bytes(32));"
+// Set a layout globally (e.g. in before())
+layout('default_layout.php');
+
+// Override per render
+return render('page.html.php', 'custom_layout.php');
+
+// Render without layout
+return render('page.html.php', null);
 ```
 
-## Sessions ##
-
-FSL sessions store values encrypted using your global encryption key.
+In your layout file, `$content` contains the rendered view output:
 
 ```php
-// Start a secure session (httponly, secure, samesite=Strict cookies)
-fsl_init_secure_session();
+<body>
+  <main><?php echo $content; ?></main>
+</body>
+```
 
-// Store a session value (optionally with a timeout in seconds)
+### Content Types
+
+Each function sets the correct `Content-Type` header and works the same as `render()`:
+
+| Function | Content-Type | Notes |
+|----------|-------------|-------|
+| `html($view)` | `text/html` | Most common — use for pages |
+| `json($data)` | `application/json` | Encodes data with `json_encode()`, UTF-8 safe |
+| `xml($view)` | `text/xml` | |
+| `css($view)` | `text/css` | |
+| `js($view)` | `application/javascript` | |
+| `txt($view)` | `text/plain` | |
+
+```php
+// JSON response
+return json(['status' => 'ok', 'count' => 42]);
+
+// JSON with custom encode flags
+return json($data, JSON_PRETTY_PRINT);
+
+// File download / static file
+render_file(option('public_dir') . '/report.pdf');
+```
+
+### Inline Templates
+
+A function can be used as a template instead of a file:
+
+```php
+function view_hello($vars) { extract($vars); ?>
+    <h1>Hello, <?php echo h($name); ?>!</h1>
+<?php }
+
+// In your controller:
+set('name', 'Alice');
+return render('view_hello');
+```
+
+### Partials
+
+Renders a view with no layout — useful for reusable blocks:
+
+```php
+// These are equivalent:
+return partial('_sidebar.php', ['links' => $links]);
+return render('_sidebar.php', null, ['links' => $links]);
+```
+
+### Content Captures
+
+Capture blocks in a view for use in the layout:
+
+```php
+// In your view:
+<?php content_for('sidebar'); ?>
+  <ul><li>Item 1</li></ul>
+<?php end_content_for(); ?>
+
+// In your layout:
+<aside><?php if (isset($sidebar)) echo $sidebar; ?></aside>
+```
+
+### Template Helpers
+
+| Function | Description |
+|----------|-------------|
+| `h($string)` | HTML-escape a string (`htmlspecialchars` wrapper) — always use on user data |
+| `url_for('path', 'segments')` | Build a URL relative to `base_uri` — returns HTML-safe `&amp;` separators |
+| `partial($file, $locals)` | Render a sub-template with no layout |
+| `flash_now($name)` | Read a flash message in the current view |
+
+```php
+// url_for examples
+url_for('/users', '42');                          // ?/users/42  (or /users/42 with rewriting)
+url_for('/search', ['q' => 'php', 'page' => 2]); // ?/search&amp;q=php&amp;page=2
+```
+
+---
+
+## Configuration & Options
+
+Define a `configure()` function in `config/fsl_config.php` — FSL calls it automatically at startup:
+
+```php
+function configure() {
+    option('env', ENV_PRODUCTION);   // ENV_PRODUCTION or ENV_DEVELOPMENT
+    option('base_uri', '/');
+    option('session', 'myapp');      // session name, or false to disable
+    option('global_encryption_key', 'your-key-here');
+    option('fsl_session_length', 300); // session timeout in seconds
+
+    // Database example (PDO)
+    try {
+        $db = new PDO('mysql:host=localhost;dbname=mydb;charset=utf8mb4', 'user', 'pass');
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        option('db', $db);
+    } catch (PDOException $e) {
+        halt(SERVER_ERROR, $e->getMessage());
+    }
+}
+```
+
+### Options Reference
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `env` | `ENV_PRODUCTION` | `ENV_PRODUCTION` or `ENV_DEVELOPMENT` |
+| `base_uri` | auto-detected | Override if using URL rewriting or a subdirectory |
+| `session` | session name string | Session name, `true` to enable with default name, `false` to disable |
+| `encoding` | `'utf-8'` | Response character encoding |
+| `debug` | `true` | Show PHP errors |
+| `gzip` | `false` | Enable gzip output compression |
+| `views_dir` | `ROOT/views/` | Template files location |
+| `controllers_dir` | `ROOT/controllers/` | Controller files location |
+| `lib_dir` | `ROOT/lib/` | Auto-loaded PHP library directory |
+| `public_dir` | `ROOT/public/` | Static assets directory |
+| `error_views_dir` | FSL internal views | Override error page templates |
+| `global_encryption_key` | — | Key for `fsl_encrypt()` / session encryption |
+| `fsl_session_length` | `300` | Encrypted session timeout in seconds |
+
+`option()` also works as a general key/value store for your own app settings:
+
+```php
+option('api_base_url', 'https://api.example.com');
+// later:
+$url = option('api_base_url');
+```
+
+---
+
+## Sessions & Flash
+
+### Native Sessions
+
+FSL starts a session automatically if `option('session')` is set (it is by default). You can use `$_SESSION` directly:
+
+```php
+$_SESSION['user_id'] = 42;
+$id = $_SESSION['user_id'];
+```
+
+### FSL Encrypted Sessions
+
+For sensitive values, use FSL's encrypted session helpers. Values are AES-256-CBC encrypted before being stored in `$_SESSION`:
+
+```php
+// Store (optionally with a timeout in seconds)
 fsl_session_set('user_id', '42');
 fsl_session_set('user_id', '42', 300); // expires in 5 minutes
 
-// Retrieve a session value — returns false if missing or timed out
+// Retrieve — returns false if missing or timed out
 $userId = fsl_session_check('user_id');
+if ($userId === false) {
+    redirect_to('/login');
+}
 
-// Destroy a specific session key
+// Delete one key
 fsl_session_kill('user_id');
 
 // Destroy the entire session
 fsl_session_kill('*');
 ```
 
-## XSS Filtering ##
+For hardened cookie settings (httponly, secure, samesite=Strict), call before session start:
 
 ```php
-// Strip XSS threats from a string — use on all user-supplied input
-$clean = fsl_scrub($_POST['comment']);
+fsl_init_secure_session();
 ```
 
-## Password Hashing ##
+### Flash Messages
+
+Flash values survive exactly one request — useful for form errors and success notices.
 
 ```php
-// Create a one-way hash (bcrypt via the Password helper class)
-$hash = fsl_hash_create('my_password');
+// In your POST handler — set for the next request
+flash('notice', 'Profile updated!');
+redirect_to('/profile');
 
-// Validate a password against a stored hash
-$valid = fsl_hash_validate('my_password', $hash); // true or false
+// In your view or next controller — read current request's flash
+$msg = flash_now('notice');
+// or in templates: $flash['notice']
 ```
 
-## JWT Tokens ##
+---
+
+## Hooks
+
+Hooks are plain PHP functions that FSL calls automatically at defined points in the request lifecycle. Declare them anywhere before `run()`.
+
+### `before($route)`
+Runs before every request. Use it to set layouts, check auth, or pass common template variables.
 
 ```php
-// Encode a payload as a JWT
-$payload = ['user_id' => 42, 'role' => 'admin'];
-$token = fsl_jwt_encode($payload, 'your-secret-key');
-
-// Decode and validate a JWT — returns the payload object or throws on failure
-$decoded = fsl_jwt_decode($token, 'your-secret-key');
-echo $decoded->user_id; // 42
-```
-
-## CSRF Protection ##
-
-```php
-// In your form view — generate and embed a token
-<input type="hidden" name="_csrf_token" value="<?php echo fsl_csrf_token(); ?>">
-
-// In your POST handler — validate the submitted token
-function my_form_handler()
-{
-    if (!fsl_csrf_validate($_POST['_csrf_token'])) {
-        halt(SERVER_ERROR, 'Invalid CSRF token.');
-    }
-    // process form...
+function before($route) {
+    layout('default_layout.php');
+    set('current_user', $_SESSION['user'] ?? null);
 }
 ```
 
-## HTTP Client ##
-
-`fsl_curl` makes outbound HTTP requests. Returns an array of `[http_code, curl_info, response_body]`.
+### `after($output, $route)`
+Runs after every request. Receives and must return the output string. Use for output transformation.
 
 ```php
-// Basic GET request
-$response = fsl_curl('https://api.example.com/data');
-$code     = $response[0]; // e.g. 200
-$body     = $response[2]; // response string
+function after($output, $route) {
+    // append timing comment in development
+    if (option('env') === ENV_DEVELOPMENT) {
+        $time = number_format(microtime(true) - LIM_START_MICROTIME, 4);
+        $output .= "<!-- rendered in {$time}s -->";
+    }
+    return $output;
+}
+```
 
-// POST with JSON body
-$response = fsl_curl(
+### `before_render($content, $layout, $locals, $view_path)`
+Runs before the view is rendered. Return the (possibly modified) array of all four parameters.
+
+```php
+function before_render($content, $layout, $locals, $view_path) {
+    // force JSON views to have no layout
+    if (str_ends_with($content, '.json.php')) $layout = null;
+    return [$content, $layout, $locals, $view_path];
+}
+```
+
+### `autorender($route)`
+Called when a controller returns `null`. Use to build convention-based rendering (e.g. render a view named after the callback).
+
+```php
+function autorender($route) {
+    return html($route['callback'] . '.html.php');
+}
+```
+
+### `before_exit($exit)`
+Called at the start of the shutdown sequence.
+
+```php
+function before_exit($exit) {
+    // close DB connections, flush logs, etc.
+}
+```
+
+### `before_sending_header($header)`
+Intercept any header FSL is about to send. Do not call `send_header()` unconditionally here — it will cause a loop.
+
+```php
+function before_sending_header($header) {
+    if (str_contains($header, 'text/css')) {
+        send_header('Cache-Control: max-age=600, public');
+    }
+}
+```
+
+### Hook Quick Reference
+
+| Hook | Signature | Called when |
+|------|-----------|-------------|
+| `configure()` | `void` | App startup, before routes run |
+| `initialize()` | `void` | After session start, before route matching |
+| `autoload_controller($callback)` | `void` | After route match, to load controller files |
+| `before($route)` | `void` | Before each request handler |
+| `after($output, $route)` | `string` | After each request — must return `$output` |
+| `before_render($content, $layout, $locals, $view_path)` | `array` | Before view rendering — must return all 4 params |
+| `autorender($route)` | `string` | When controller returns `null` |
+| `not_found($errno, $errstr, $errfile, $errline)` | `string` | On 404 |
+| `server_error($errno, $errstr, $errfile, $errline)` | `string` | On 500 |
+| `route_missing($method, $uri)` | `void` | When no route matches |
+| `before_exit($exit)` | `void` | Before app shutdown |
+| `before_sending_header($header)` | `void` | Before any `header()` call |
+
+---
+
+## Error Handling
+
+### `halt()`
+
+Stop execution immediately and trigger an error handler:
+
+```php
+halt(NOT_FOUND);                          // 404
+halt(NOT_FOUND, "User not found.");       // 404 with message
+halt(SERVER_ERROR, "Something broke.");   // 500
+halt("Something broke.");                 // 500 (string shorthand)
+```
+
+PHP errors are also caught and routed to the server error handler.
+
+### Custom 404 Handler
+
+```php
+function not_found($errno, $errstr, $errfile, $errline) {
+    set('message', $errstr);
+    return html('errors/404.html.php', null);
+}
+```
+
+### Custom 500 Handler
+
+```php
+function server_error($errno, $errstr, $errfile, $errline) {
+    $args = compact('errno', 'errstr', 'errfile', 'errline');
+    return html('errors/500.html.php', error_layout(), $args);
+}
+```
+
+### Map Specific Error Codes
+
+```php
+error(E_USER_WARNING, 'handle_warning');
+function handle_warning($errno, $errstr, $errfile, $errline) {
+    error_log("Warning $errno: $errstr");
+    status(SERVER_ERROR);
+    return html('<h1>Something went wrong</h1>');
+}
+```
+
+`E_LIM_HTTP` matches all HTTP errors. `E_LIM_PHP` matches all PHP errors.
+
+### HTTP Status Codes
+
+Set a response status code before returning output:
+
+```php
+function create_user() {
+    // ... create user ...
+    status(201); // 201 Created
+    return json(['id' => $newId]);
+}
+```
+
+### Redirects
+
+```php
+redirect_to('/dashboard');                                         // 302
+redirect_to('/dashboard', ['status' => HTTP_MOVED_PERMANENTLY]);   // 301
+redirect_to('/users', '42', 'edit');                               // /users/42/edit
+```
+
+---
+
+## FSL Helper Functions
+
+All helpers are in `/lib/fsl_functions.php` and available globally once FSL is loaded.
+
+### Encryption
+
+AES-256-CBC. Uses `option('global_encryption_key')` by default.
+
+```php
+$encrypted = fsl_encrypt('sensitive value');
+$plain     = fsl_decrypt($encrypted);
+
+// Custom key
+$encrypted = fsl_encrypt('value', $myKey);
+$plain     = fsl_decrypt($encrypted, $myKey);
+```
+
+Set your key in `config/fsl_config.php` — generate with:
+```bash
+php -r "echo base64_encode(random_bytes(32));"
+```
+
+### XSS Filtering
+
+```php
+$clean = fsl_scrub($_POST['comment']); // strip XSS from user input
+```
+
+### Password Hashing
+
+Uses bcrypt via the included Password helper:
+
+```php
+$hash  = fsl_hash_create('my_password');
+$valid = fsl_hash_validate('my_password', $hash); // true or false
+```
+
+### JWT Tokens
+
+```php
+$payload = ['user_id' => 42, 'role' => 'admin'];
+$token   = fsl_jwt_encode($payload, 'secret-key');
+
+$decoded = fsl_jwt_decode($token, 'secret-key');
+echo $decoded->user_id; // 42
+```
+
+### CSRF Protection
+
+```php
+// In your form template:
+<input type="hidden" name="_csrf_token" value="<?php echo fsl_csrf_token(); ?>">
+
+// In your POST handler:
+function save_form() {
+    if (!fsl_csrf_validate($_POST['_csrf_token'])) {
+        halt(SERVER_ERROR, 'Invalid CSRF token.');
+    }
+    // safe to process...
+}
+```
+
+### HTTP Client (`fsl_curl`)
+
+Makes outbound HTTP requests. Returns `[http_code, curl_info, response_body]`.
+
+```php
+// GET
+[$code, $info, $body] = fsl_curl('https://api.example.com/data');
+
+// POST with JSON
+[$code, $info, $body] = fsl_curl(
     url: 'https://api.example.com/users',
     method: 'POST',
     datatype: 'JSON',
@@ -928,54 +672,32 @@ $response = fsl_curl(
 );
 
 // Bearer token auth
-$response = fsl_curl(
+[$code, $info, $body] = fsl_curl(
     url: 'https://api.example.com/secure',
-    method: 'GET',
-    datatype: 'JSON',
     authtype: 'TOKEN',
     authtoken: 'my-bearer-token'
 );
 
 // Basic auth
-$response = fsl_curl(
+[$code, $info, $body] = fsl_curl(
     url: 'https://api.example.com/secure',
-    method: 'GET',
     authtype: 'BASIC',
-    authuser: 'username',
-    authpassword: 'password'
+    authuser: 'user',
+    authpassword: 'pass'
 );
 ```
 
 **Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `$url` | string | Request URL |
-| `$method` | string | `GET`, `POST`, `PUT`, `DELETE` (default: `GET`) |
-| `$datatype` | string\|null | `JSON`, `XML`, `FORM`, or null for `*/*` |
-| `$urlparams` | string\|null | Query string to append to URL |
-| `$postdata` | mixed | POST body data |
-| `$authtype` | string\|null | `BASIC` or `TOKEN` |
-| `$authuser` | string\|null | Basic auth username |
-| `$authpassword` | string\|null | Basic auth password |
-| `$authtoken` | string\|null | Bearer token |
-| `$customheader` | array\|null | Additional headers array |
-
-## Abstract Hook Reference ##
-
-These are the user-definable hook functions FSL will call automatically if you declare them in your app:
-
-| Function | When called | Parameters | Return |
-|----------|-------------|--------------|--------|
-| `configure()` | App startup, before routes | — | void |
-| `initialize()` | After session start, before route matching | — | void |
-| `autoload_controller($callback)` | After route match, to load controller files | `$callback` string | void |
-| `before($route)` | Before each request handler | `$route` array | void |
-| `after($output, $route)` | After each request, can modify output | `$output` string, `$route` array | string |
-| `before_render($content, $layout, $locals, $view_path)` | Before view rendering | view params | array |
-| `autorender($route)` | When controller returns null | `$route` array | string |
-| `not_found($errno, $errstr, $errfile, $errline)` | On 404 error | error details | string |
-| `server_error($errno, $errstr, $errfile, $errline)` | On 500 error | error details | string |
-| `route_missing($method, $uri)` | When no route matches | method + URI | void |
-| `before_exit($exit)` | Before app shutdown | `$exit` bool | void |
-| `before_sending_header($header)` | Before any `header()` call | header string | void |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `$url` | string | required | Request URL |
+| `$method` | string | `'GET'` | `GET`, `POST`, `PUT`, `DELETE` |
+| `$datatype` | string\|null | `null` | `'JSON'`, `'XML'`, `'FORM'`, or `null` for `*/*` |
+| `$urlparams` | string\|null | `null` | Query string appended to URL |
+| `$postdata` | mixed | `null` | POST body |
+| `$authtype` | string\|null | `null` | `'BASIC'` or `'TOKEN'` |
+| `$authuser` | string\|null | `null` | Basic auth username |
+| `$authpassword` | string\|null | `null` | Basic auth password |
+| `$authtoken` | string\|null | `null` | Bearer token |
+| `$customheader` | array\|null | `null` | Additional headers |
