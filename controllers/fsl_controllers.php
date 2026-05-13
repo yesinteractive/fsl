@@ -15,21 +15,24 @@ function process_time(): string
 /*
  * home
  *
- * Returns framework identity and a map of available demo endpoints.
+ * HTML landing page with FSL overview and links/forms for demo endpoints.
  */
 function home(): string
 {
-    return json([
-        'framework' => 'FSL - PHP Agentic Micro-Framework',
-        'version'   => option('fsl_version'),
-        'endpoints' => [
-            'POST /chat'      => 'LLM chat via Anthropic - body: {"message":"..."}',
-            'POST /mcp'       => 'MCP server - JSON-RPC 2.0 (tools/list, tools/call)',
-            'GET /api/status' => 'API health check',
-            'GET /jwt'        => 'JWT encode/decode demo',
-            'GET /curl'       => 'HTTP client demo',
-        ],
-    ]);
+    $locals = [
+        'fsl_version' => option('fsl_version'),
+        'url_status'  => url_for('/api/status'),
+        'url_jwt'     => url_for('/jwt'),
+        'url_curl'    => url_for('/curl'),
+        'url_chat'    => str_replace('&amp;', '&', url_for('/chat')),
+        'url_mcp'     => str_replace('&amp;', '&', url_for('/mcp')),
+        'url_github'  => 'https://github.com/yesinteractive/fsl',
+        'url_license' => 'https://github.com/yesinteractive/fsl/blob/master/LICENSE.md',
+    ];
+    $body = render('home.html.php', null, $locals);
+    send_header('Content-Type: text/html; charset=' . strtolower(option('encoding')));
+
+    return $body;
 }
 
 /*
@@ -42,22 +45,36 @@ function home(): string
  */
 function llm_chat(): string
 {
-    $message = params('message');
-    if (empty($message)) {
-        halt(BAD_REQUEST, 'Missing required parameter: message');
+    // Request body is in env()['POST'] (JSON or form); params() is only for route placeholders.
+    $post    = env()['POST'] ?? [];
+    $message = $post['message'] ?? params('message');
+    $message = is_string($message) ? trim($message) : '';
+
+    if ($message === '') {
+        status(HTTP_BAD_REQUEST);
+
+        return json([
+            'error' => 'Missing required parameter: message',
+            'hint'  => 'Send JSON: {"message":"your text"} or form field message.',
+        ]);
     }
 
     try {
         $response = fsl_anthropic_chat([
             ['role' => 'user', 'content' => $message],
         ]);
+
         return json([
             'reply'   => $response['content'][0]['text'],
             'model'   => $response['model'],
             'elapsed' => process_time(),
         ]);
     } catch (RuntimeException $e) {
-        halt(SERVER_ERROR, $e->getMessage());
+        status(SERVER_ERROR);
+
+        return json([
+            'error' => $e->getMessage(),
+        ]);
     }
 }
 

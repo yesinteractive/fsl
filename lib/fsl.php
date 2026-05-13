@@ -2715,6 +2715,8 @@ function send_security_headers() {
     }
 }
 
+// MCP helpers (fsl_mcp_tool, fsl_mcp_handle) — load before run() so index.php can register tools
+require_once file_path(dirname(__FILE__), 'fsl_mcp_functions.php');
 
 
 #   ================================= END ==================================   #

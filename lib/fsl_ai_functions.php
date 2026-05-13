@@ -33,10 +33,10 @@ function fsl_anthropic_chat(
     int $max_tokens = 1024,
     ?string $system = null
 ): array {
-    $api_key = option('anthropic_api_key');
+    $api_key = option('anthropic_api_key') ?: option('ANTHROPIC_API_KEY');
     if (empty($api_key)) {
         throw new RuntimeException(
-            'Anthropic API key not set. Add option(\'anthropic_api_key\', ...) in config/fsl_config.php.'
+            'Anthropic API key not set. Use option(\'anthropic_api_key\', getenv(\'ANTHROPIC_API_KEY\')) or env ANTHROPIC_API_KEY in config/fsl_config.php.'
         );
     }
 

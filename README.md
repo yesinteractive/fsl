@@ -4,6 +4,8 @@
 
 Build AI-powered APIs, LLM services, and MCP servers in PHP - no Composer required. FSL is for PHP developers who want to expose existing PHP code as AI-callable APIs and MCP tools without adopting Laravel, Symfony, Node, or Composer.
 
+You can use the same stack for **rapid web application development** (routing, templates, layouts, sessions, forms) and for **mobile app backends**—JSON APIs, auth, and HTTP primitives your native or hybrid clients call over HTTPS.
+
 **Requirements:** PHP 8.0+
 
 ---
@@ -19,8 +21,9 @@ function configure() {
 }
 
 dispatch_post('/chat', function() {
+    $message = env()['POST']['message'] ?? '';
     $response = fsl_anthropic_chat([
-        ['role' => 'user', 'content' => params('message')]
+        ['role' => 'user', 'content' => $message],
     ]);
     return json(['reply' => $response['content'][0]['text']]);
 });
@@ -37,155 +40,21 @@ Point your web server at the project root, or run `php -S localhost:8080` for lo
 - **AI-native** - built-in Anthropic and OpenAI helpers; LLM calls in one line
 - **MCP-ready** - expose any function as an MCP tool in ~10 lines; spec-compliant JSON-RPC 2.0
 - **API-first** - native JSON responses, HTTP method routing, status code helpers
+- **Rapid web and mobile backends** - ship browser apps or JSON APIs for iOS, Android, and hybrid clients with the same routing, responses, and template helpers
 - **Minimal footprint** - one `require`, no Composer, no build step
 - **Built-in security** - AES-256-CBC encryption, encrypted sessions, CSRF, JWT
 - **HTTP client included** - `fsl_curl()` covers all auth patterns for calling external APIs and agent tool backends
 
 ---
 
-## AI / LLM Helpers
+## Documentation
 
-FSL includes thin wrappers for the Anthropic and OpenAI chat APIs. Configure your keys in `config/fsl_config.php`:
-
-```php
-function configure() {
-    option('anthropic_api_key', getenv('ANTHROPIC_API_KEY'));
-    option('anthropic_model',   'claude-sonnet-4-6');
-
-    option('openai_api_key', getenv('OPENAI_API_KEY'));
-    option('openai_model',   'gpt-4o');
-}
-```
-
-### Anthropic
-
-```php
-$response = fsl_anthropic_chat([
-    ['role' => 'user', 'content' => 'Summarize this in one sentence: ' . $text]
-]);
-$answer = $response['content'][0]['text'];
-```
-
-With a system prompt and model override:
-
-```php
-$response = fsl_anthropic_chat(
-    messages:   [['role' => 'user', 'content' => $question]],
-    model:      'claude-opus-4-7',
-    max_tokens: 2048,
-    system:     'You are a helpful assistant. Be concise.'
-);
-```
-
-### OpenAI
-
-```php
-$response = fsl_openai_chat([
-    ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-    ['role' => 'user',   'content' => $question]
-]);
-$answer = $response['choices'][0]['message']['content'];
-```
-
-Both functions return the full decoded API response array and throw `RuntimeException` on missing keys or non-2xx responses.
-
----
-
-## MCP Server
-
-FSL can act as a [Model Context Protocol](https://modelcontextprotocol.io) server, exposing your app's functions as tools that AI agents (Claude Desktop, Cursor, etc.) can call directly.
-
-### Minimal MCP Server
-
-```php
-<?php
-require 'lib/fsl.php';
-
-fsl_mcp_tool(
-    name: 'get_user',
-    description: 'Look up a user by ID',
-    schema: [
-        'type'       => 'object',
-        'properties' => ['id' => ['type' => 'integer', 'description' => 'User ID']],
-        'required'   => ['id']
-    ],
-    callback: function(array $args): array {
-        return user_find($args['id']);
-    }
-);
-
-dispatch_post('/', 'fsl_mcp_handle');
-run();
-```
-
-That's a complete, spec-compliant MCP server.
-
-### How It Works
-
-`fsl_mcp_handle()` is a standard FSL controller that handles JSON-RPC 2.0 requests from AI agents:
-
-| JSON-RPC Method | What FSL does |
-|-----------------|---------------|
-| `initialize` | Returns server name, version, and capabilities |
-| `tools/list` | Returns all registered tools with their schemas |
-| `tools/call` | Calls the matching tool callback with the provided arguments |
-
-### Registering Multiple Tools
-
-```php
-fsl_mcp_tool(
-    name: 'search_products',
-    description: 'Search the product catalog',
-    schema: [
-        'type'       => 'object',
-        'properties' => [
-            'query' => ['type' => 'string', 'description' => 'Search term'],
-            'limit' => ['type' => 'integer', 'description' => 'Max results (default 10)'],
-        ],
-        'required' => ['query']
-    ],
-    callback: function(array $args): array {
-        return product_search($args['query'], $args['limit'] ?? 10);
-    }
-);
-
-fsl_mcp_tool(
-    name: 'get_order',
-    description: 'Retrieve an order by order ID',
-    schema: [
-        'type'       => 'object',
-        'properties' => ['order_id' => ['type' => 'string']],
-        'required'   => ['order_id']
-    ],
-    callback: function(array $args): array {
-        return order_find($args['order_id']);
-    }
-);
-
-dispatch_post('/', 'fsl_mcp_handle');
-run();
-```
-
-### Server Name
-
-Set a custom server name shown to AI agents during the handshake:
-
-```php
-option('mcp_server_name', 'My Product API');
-```
-
-### Adding Auth
-
-Use FSL's `before()` hook to add authentication:
-
-```php
-function before() {
-    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if ($token !== 'Bearer ' . option('mcp_api_key')) {
-        halt(UNAUTHORIZED, 'Invalid token');
-    }
-}
-```
+| Topic | Link |
+|-------|------|
+| Helper functions (encryption, sessions, curl, CSRF, JWT, …) | [docs/helpers-fsl_functions.md](docs/helpers-fsl_functions.md) |
+| AI / LLM (Anthropic, OpenAI) | [docs/helpers-ai.md](docs/helpers-ai.md) |
+| MCP server (tools, JSON-RPC) | [docs/helpers-mcp.md](docs/helpers-mcp.md) |
+| Index | [docs/README.md](docs/README.md) |
 
 ---
 
@@ -206,6 +75,11 @@ No Composer, no dependencies. Drop the files into your project and `require 'lib
 
 ```
 fsl/
++-- docs/
+|   +-- README.md                 # Doc index
+|   +-- helpers-fsl_functions.md
+|   +-- helpers-ai.md
+|   +-- helpers-mcp.md
 +-- lib/
 |   +-- fsl.php               # Core framework - require this
 |   +-- fsl_functions.php     # Helper functions (encryption, sessions, curl, etc.)
@@ -217,7 +91,7 @@ fsl/
 +-- controllers/
 |   +-- fsl_controllers.php   # Route handlers
 +-- views/
-|   +-- *.php                 # HTML templates
+|   +-- *.php                 # HTML templates for web UIs
 +-- index.php                 # Entry point
 ```
 
@@ -258,6 +132,12 @@ php -r "echo base64_encode(random_bytes(32));"
 | `views_dir` | `views/` | Directory for HTML templates |
 | `controllers_dir` | `controllers/` | Directory for controller files |
 | `lib_dir` | `lib/` | Directory for auto-loaded libraries |
+| `anthropic_api_key` | - | Anthropic API key (see [docs/helpers-ai.md](docs/helpers-ai.md)) |
+| `anthropic_model` | (library default) | Model id for `fsl_anthropic_chat` |
+| `openai_api_key` | - | OpenAI API key |
+| `openai_model` | (library default) | Model id for `fsl_openai_chat` |
+| `mcp_server_name` | `FSL MCP Server` | Name in MCP `initialize` (see [docs/helpers-mcp.md](docs/helpers-mcp.md)) |
+| `fsl_version` | - | Shown in MCP `serverInfo.version` when set |
 
 ---
 
@@ -316,14 +196,17 @@ dispatch('^/products/([0-9]+)$', 'get_product');
 // params(0) = first capture group
 ```
 
-### Query String & POST Data
+### Query String & POST body
+
+Route parameters use `params('id')` etc. For **JSON POST** bodies (`Content-Type: application/json`), use `env()['POST']` (see [docs/helpers-ai.md](docs/helpers-ai.md)).
 
 ```php
-$q    = params('q');           // $_GET or $_POST
-$page = params('page') ?? 1;
+$q = $_GET['q'] ?? null; // or env()['GET']['q'] when env is populated
 ```
 
----
+```php
+$payload = env()['POST'] ?? [];
+```
 
 ## Responses
 
@@ -368,12 +251,13 @@ redirect_to('/dashboard', array(), 301); // 301 redirect
 ### Errors
 
 ```php
-halt(NOT_FOUND, 'User not found');     // 404
-halt(SERVER_ERROR, 'DB unavailable');  // 500
-halt(FORBIDDEN);                       // 403
+halt(NOT_FOUND, 'User not found');              // 404 — short alias
+halt(SERVER_ERROR, 'DB unavailable');           // 500 — short alias
+halt(HTTP_FORBIDDEN, 'Not allowed');             // 403
+halt(HTTP_BAD_REQUEST, 'Invalid input');        // 400
 ```
 
-Constants: `OK` (200), `CREATED` (201), `NO_CONTENT` (204), `MOVED` (301), `FOUND` (302), `NOT_MODIFIED` (304), `BAD_REQUEST` (400), `UNAUTHORIZED` (401), `FORBIDDEN` (403), `NOT_FOUND` (404), `SERVER_ERROR` (500).
+Most HTTP codes use the `HTTP_*` constants (for example `HTTP_BAD_REQUEST`, `HTTP_UNAUTHORIZED`, `HTTP_NOT_FOUND`). Limonade-style aliases exist for some codes, including `NOT_FOUND` and `SERVER_ERROR`.
 
 ---
 
@@ -464,86 +348,11 @@ $id = $_SESSION['user_id'];
 
 ### Encrypted Sessions
 
-`fsl_session_set` / `fsl_session_get` encrypt values with AES-256-CBC before storing in `$_SESSION`:
+`fsl_session_set` / `fsl_session_check` store **string** values encrypted in `$_SESSION` (use `json_encode` / `json_decode` for arrays). See [docs/helpers-fsl_functions.md](docs/helpers-fsl_functions.md).
 
 ```php
-fsl_session_set('user', ['id' => 42, 'role' => 'admin']);
-$user = fsl_session_get('user');
+fsl_session_set('user_id', '42');
+$id = fsl_session_check('user_id'); // string or false if missing/expired
 ```
 
 Requires `global_encryption_key` to be set in `configure()`.
-
----
-
-## FSL Helper Functions
-
-### Encryption
-
-```php
-$encrypted = fsl_encrypt('secret data');  // returns base64-encoded ciphertext
-$plain     = fsl_decrypt($encrypted);     // returns original string
-```
-
-Uses AES-256-CBC with the `global_encryption_key` from config.
-
-### CSRF Protection
-
-```php
-// In your form template:
-<input type="hidden" name="_csrf_token" value="<?php echo fsl_csrf_token(); ?>">
-
-// In your form handler:
-function save_form() {
-    if (!fsl_csrf_validate($_POST['_csrf_token'])) {
-        halt(SERVER_ERROR, 'Invalid CSRF token.');
-    }
-    // safe to process...
-}
-```
-
-### HTTP Client (`fsl_curl`)
-
-Makes outbound HTTP requests. Returns `[http_code, curl_info, response_body]`.
-
-```php
-// GET
-[$code, $info, $body] = fsl_curl('https://api.example.com/data');
-
-// POST with JSON
-[$code, $info, $body] = fsl_curl(
-    url: 'https://api.example.com/users',
-    method: 'POST',
-    datatype: 'JSON',
-    postdata: json_encode(['name' => 'Alice'])
-);
-
-// Bearer token auth
-[$code, $info, $body] = fsl_curl(
-    url: 'https://api.example.com/secure',
-    authtype: 'TOKEN',
-    authtoken: 'my-bearer-token'
-);
-
-// Basic auth
-[$code, $info, $body] = fsl_curl(
-    url: 'https://api.example.com/secure',
-    authtype: 'BASIC',
-    authuser: 'user',
-    authpassword: 'pass'
-);
-```
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `$url` | string | required | Request URL |
-| `$method` | string | `'GET'` | `GET`, `POST`, `PUT`, `DELETE` |
-| `$datatype` | string|null | `null` | `'JSON'`, `'XML'`, `'FORM'`, or `null` for `*/*` |
-| `$urlparams` | string|null | `null` | Query string appended to URL |
-| `$postdata` | mixed | `null` | POST body |
-| `$authtype` | string|null | `null` | `'BASIC'` or `'TOKEN'` |
-| `$authuser` | string|null | `null` | Basic auth username |
-| `$authpassword` | string|null | `null` | Basic auth password |
-| `$authtoken` | string|null | `null` | Bearer token |
-| `$customheader` | array|null | `null` | Additional headers |

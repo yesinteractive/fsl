@@ -1,4 +1,4 @@
-**/config
 **/vendor
 Dockerfile
+.htaccess
 .htaccess

@@ -4,7 +4,7 @@
 
 function configure()
 {
-  option('fsl_version', "20250326");
+  option('fsl_version', "20260513");
 
   option('env', ENV_PRODUCTION);
   option('base_uri', "/"); //set if app is not in web root directory but in a subdirectory
@@ -26,9 +26,7 @@ function configure()
   //fsl configurations
   
   option('fsl_session_length', 300); // session timeout in seconds, default is 300 seconds or 5 minutes. PHP default is typically 24 minute
-  
-  
-  
+
   #######################################################################
   #Database Connections
   ######################################################################
@@ -72,14 +70,15 @@ function configure()
   //##############################################
   //AI / LLM configuration
   //
-  // Uncomment and set your API keys to enable AI helpers.
-  // Use environment variables to keep secrets out of source control.
+  // Anthropic: use env ANTHROPIC_API_KEY in production. If unset, you may set
+  // $anthropic_key below for local dev (do not commit real keys to git).
   //
-  //option('anthropic_api_key', getenv('ANTHROPIC_API_KEY'));
+  
+  //tion('anthropic_api_key', 'yourkey');
   //option('anthropic_model',   'claude-sonnet-4-6');   // default model
   //option('anthropic_api_version', '2023-06-01');       // API version header
   //
-  //option('openai_api_key', getenv('OPENAI_API_KEY'));
+  //option('openai_api_key', 'yourkey');
   //option('openai_model',   'gpt-4o');                 // default model
   //
   //##############################################

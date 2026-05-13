@@ -22,7 +22,7 @@ function before($route)
 #
 #  HTTP Method |  Url path         |  Controller function
 # -------------+-------------------+-------------------------------------------
-#   GET        |  /                |  home            - framework identity + endpoint map
+#   GET        |  /                |  home            - HTML landing + demo links
 #   POST       |  /chat            |  llm_chat        - LLM chat via Anthropic
 #   POST       |  /mcp             |  fsl_mcp_handle  - MCP server (JSON-RPC 2.0)
 #   GET        |  /api/status      |  api_status      - JSON health check
