@@ -65,7 +65,7 @@
  * Limonade version
  */
 define('LIMONADE',              '0.12.0');
-define('LIM_NAME',              'Fresh Squeezed Limonade');
+define('LIM_NAME',              'FSL');
 define('LIM_START_MICROTIME',   microtime(true));
 define('LIM_SESSION_NAME',      'fsl'.str_replace('.','x',LIMONADE));
 define('LIM_SESSION_FLASH_KEY', '_lim_flash_messages');
@@ -81,61 +81,11 @@ define('ENV_DEVELOPMENT',       100);
 define('X-SENDFILE',            10);
 define('X-LIGHTTPD-SEND-FILE',  20);
 
-# for PHP 5.3.0 <
-if(!defined('E_DEPRECATED'))         define('E_DEPRECATED',        8192);
-if(!defined('E_USER_DEPRECATED'))    define('E_USER_DEPRECATED',   16384);
-# for PHP 5.2.0 <
-if (!defined('E_RECOVERABLE_ERROR')) define('E_RECOVERABLE_ERROR', 4096);
 
 
 ## SETTING BASIC SECURITY _____________________________________________________
 
-# A. Unsets all global variables set from a superglobal array
-
-/**
- * @access private
- * @return void
- */
-function unregister_globals()
-{
-  $args = func_get_args();
-  foreach($args as $k => $v)
-    if(array_key_exists($k, $GLOBALS)) unset($GLOBALS[$k]);
-}
-
-if(ini_get('register_globals'))
-{
-  unregister_globals( '_POST', '_GET', '_COOKIE', '_REQUEST', '_SERVER', 
-                      '_ENV', '_FILES');
-  ini_set('register_globals', 0);
-}
-
-# B. removing magic quotes
-
-/**
- * @access private
- * @param string $array 
- * @return array
- */
-function remove_magic_quotes($array)
-{
-  foreach ($array as $k => $v)
-    $array[$k] = is_array($v) ? remove_magic_quotes($v) : stripslashes($v);
-  return $array;
-}
-
-# Remove get_magic_quotes_gpc() checks since it's removed in PHP 7.4+
-if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc())
-{
-  $_GET    = remove_magic_quotes($_GET);
-  $_POST   = remove_magic_quotes($_POST);
-  $_COOKIE = remove_magic_quotes($_COOKIE);
-  ini_set('magic_quotes_gpc', 0);
-}
-  
-if(function_exists('set_magic_quotes_runtime') && get_magic_quotes_runtime()) set_magic_quotes_runtime(false); // Remove - magic quotes was removed in PHP 7.4
-
-# C. Disable error display
+# Disable error display
 #    by default, no error reporting; it will be switched on later in run().
 #    ini_set('display_errors', 1); must be called explicitly in app file
 #    if you want to show errors before running app
@@ -156,30 +106,30 @@ ini_set('display_errors', 0);
 
 ## SETTING INTERNAL ROUTES _____________________________________________________
 
-dispatch(array("/_lim_css/*.css", array('_lim_css_filename')), 'render_limonade_css');
+dispatch(array("/_fsl_css/*.css", array('_fsl_css_filename')), 'render_fsl_css');
   /**
-   * Internal controller that responds to route /_lim_css/*.css
+   * Internal controller that responds to route /_fsl_css/*.css
    *
    * @access private
    * @return string
    */
-  function render_limonade_css()
+  function render_fsl_css()
   {
-    option('views_dir', file_path(option('limonade_public_dir'), 'css'));
-    $fpath = file_path(params('_lim_css_filename').".css");
+    option('views_dir', file_path(option('fsl_public_dir'), 'css'));
+    $fpath = file_path(params('_fsl_css_filename').".css");
     return css($fpath, null); // with no layout
   }
 
-dispatch(array("/_lim_public/**", array('_lim_public_file')), 'render_limonade_file');
+dispatch(array("/_fsl_public/**", array('_fsl_public_file')), 'render_fsl_file');
   /**
-   * Internal controller that responds to route /_lim_public/**
+   * Internal controller that responds to route /_fsl_public/**
    *
    * @access private
    * @return void
    */
-  function render_limonade_file()
+  function render_fsl_file()
   {
-    $fpath = file_path(option('limonade_public_dir'), params('_lim_public_file'));
+    $fpath = file_path(option('fsl_public_dir'), params('_fsl_public_file'));
     return render_file($fpath, true);
   }
 
@@ -353,15 +303,15 @@ function run($env = null)
     $base_uri  = file_path($base_path, (($base_file == 'index.php') ? '?' : $base_file.'?'));
   
   option('root_dir',           $root_dir);
-  option('limonade_dir',       file_path($lim_dir));
-  option('limonade_views_dir', file_path($lim_dir, 'limonade', 'views'));
-  option('limonade_public_dir',file_path($lim_dir, 'limonade', 'public'));
+  option('fsl_dir',        file_path($lim_dir));
+  option('fsl_views_dir',  file_path($lim_dir, 'fsl', 'views'));
+  option('fsl_public_dir', file_path($lim_dir, 'fsl', 'public'));
   option('public_dir',         file_path($root_dir, 'public'));
   option('views_dir',          file_path($root_dir, 'views'));
   option('controllers_dir',    file_path($root_dir, 'controllers'));
   option('lib_dir',            file_path($root_dir, 'lib'));
   option('3rd_party',           file_path($root_dir, 'lib/3rd_party_helpers')); //reference to FSL third party helpers
-  option('error_views_dir',    option('limonade_views_dir'));
+  option('error_views_dir',    option('fsl_views_dir'));
   option('base_path',          $base_path);
   option('base_uri',           $base_uri); // set it manually if you use url_rewriting
   option('env',                ENV_PRODUCTION);
@@ -393,8 +343,8 @@ function run($env = null)
     ini_set('zlib.output_compression', '1');
   }
   
-  # 2.2 Set X-Limonade header
-  if($signature = option('signature')) send_header("X-Limonade: $signature");
+  # 2.2 Set X-FSL header
+  if($signature = option('signature')) send_header("X-FSL: $signature");
 
   # 3. Loading libs
   require_once_dir(option('lib_dir'));
@@ -637,7 +587,6 @@ function halt($errno = SERVER_ERROR, $msg = '', $debug_args = null)
   $error = array_shift($args);
 
   # switch $errno and $msg args
-  # TODO cleanup / refactoring
   if(is_string($errno))
   {
    $msg = $errno;
@@ -795,7 +744,7 @@ function error_server_error_output($errno, $errstr, $errfile, $errline)
     {
       $is_http_error = http_response_status_is_valid($errno);
       $args = compact('errno', 'errstr', 'errfile', 'errline', 'is_http_error');
-      option('views_dir', option('limonade_views_dir'));
+      option('views_dir', option('fsl_views_dir'));
       $html = render('error.html.php', null, $args);	
       option('views_dir', option('error_views_dir'));
       return html($html, error_layout(), $args);
@@ -851,7 +800,7 @@ function error_notices_render()
     $notices = error_notice();
     error_notice(null); // reset notices
     $c_view_dir = option('views_dir'); // keep for restore after render
-    option('views_dir', option('limonade_views_dir'));
+    option('views_dir', option('fsl_views_dir'));
     $o = render('_notices.html.php', null, ['notices' => $notices]);
     option('views_dir', $c_view_dir); // restore current views dir
 
@@ -1504,7 +1453,7 @@ function render($content_or_func, $layout = '', $locals = [])
   elseif(file_exists($view_path))
   {
     ob_start();
-    extract($vars);
+    extract($vars, EXTR_SKIP);
     include $view_path;
     $content = ob_get_clean();
   }
@@ -1645,17 +1594,6 @@ function json($data, int $json_option = JSON_THROW_ON_ERROR): string
  */
 function render_file($filename, $return = false)
 {
-  # TODO implements X-SENDFILE headers
-  // if($x-sendfile = option('x-sendfile'))
-  // {
-  //    // add a X-Sendfile header for apache and Lighttpd >= 1.5
-  //    if($x-sendfile > X-SENDFILE) // add a X-LIGHTTPD-send-file header 
-  //   
-  // }
-  // else
-  // {
-  //   
-  // }
   $filename = str_replace('../', '', $filename);
   if(file_exists($filename))
   {
@@ -2134,13 +2072,6 @@ function status($code = 500)
  */
 function redirect_to($params)
 {
-  # [NOTE]: (from php.net) HTTP/1.1 requires an absolute URI as argument to » Location:
-  # including the scheme, hostname and absolute path, but some clients accept
-  # relative URIs. You can usually use $_SERVER['HTTP_HOST'],
-  # $_SERVER['PHP_SELF'] and dirname() to make an absolute URI from a relative
-  # one yourself.
-
-  # TODO make absolute uri
   if(!headers_sent())
   {
     $status = HTTP_MOVED_TEMPORARILY; # default for a redirection in PHP
