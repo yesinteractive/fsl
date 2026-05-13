@@ -16,10 +16,10 @@ Controller callbacks can be a function, an object method, a static method or a c
 flexibility gives developers free range to develop class or classless based apps MVC based applications or more simpler, less structured, functional based applications. This flexibility I find is very useful
 for rapid development of REST based applications and rapid development of microservices.
 
-### FSL Extension of Limonade ###
-See /lib/fsl_functions.php for a list of provided FSL functions that extend the Limonade framework (sessions management, JWT tokens, encryption, etc.)
+### FSL Helper Functions ###
+See `/lib/fsl_functions.php` for a list of helper functions provided by FSL (session management, JWT tokens, encryption, CSRF protection, and more). See the [FSL Helper Functions](#fsl-helper-functions) section below for full documentation.
 
-FSL provides additional security to deal with XSS and other threats that were not addressed in the original Limonade framework.
+FSL provides additional security to deal with XSS and other threats.
 
 Enjoy!
 
@@ -52,7 +52,7 @@ RUN echo <your commands here>
 
 ### With Composer ###
 
-It's recommended that you use [Composer](https://getcomposer.org/) to install FSL. Navigate into your project’s root directory and execute the bash command shown below. This command downloads the FSL Framework and its third-party dependencies into your project’s vendor/ directory.
+It's recommended that you use [Composer](https://getcomposer.org/) to install FSL. Navigate into your project's root directory and execute the bash command shown below. This command downloads the FSL Framework and its third-party dependencies into your project's vendor/ directory.
 
 ```bash
 $ composer require fsl/fsl 
@@ -91,7 +91,7 @@ require 'lib/fsl.php';
 
 1. Once files are in place on web server, make sure to have URL rewriting enabled in Apache. 
 2. WEB SERVER CONFIGURATION: Verify that the directory FSL is placed in on your webserver has the AllowOverride directive set to `ALL (AllowOverride All)` in the Apache `<Directory>` configuration. If this is not set then the included `.htaccess` file will not be read and routes will not be execute correctly.
-3. .HTACCESS CONFIGURATION: Update the RewriteBase directive in the included `.htaccess` file to accomodate your app if it is installed in a web sub directory (not root). If installing FSL in a root web directory, then nothing needs to be changed. If you are installing FSL in a sub directory such as /foo, then make the following change to the .htaccess file: 
+3. .HTACCESS CONFIGURATION: Update the RewriteBase directive in the included `.htaccess` file to accommodate your app if it is installed in a web sub directory (not root). If installing FSL in a root web directory, then nothing needs to be changed. If you are installing FSL in a sub directory such as /foo, then make the following change to the .htaccess file: 
 ```
 RewriteBase /foo
 ```
@@ -100,7 +100,7 @@ RewriteBase /foo
 ```
 option('base_uri', "/foo"); //set if app is not in web root directory but in a subdirectory
 ```
-5. The code comes with an example app (index.php) with several route and countroller (/controllers/fsl_controllers.php) examples to demonstrate the flexibilty of the framework. Here are some examples of default mappings configured as examples:
+5. The code comes with an example app (index.php) with several route and controller (/controllers/fsl_controllers.php) examples to demonstrate the flexibility of the framework. Here are some examples of default mappings configured as examples:
 
 HTTP Method | URL Path | Controller Function | Demo
 ------------ | ------------- | ------------- | -------------
@@ -130,7 +130,7 @@ Routes combine
 So they make the glue between an URL + a HTTP method, and the code provided in a callback controller.
 ```php
     dispatch('/', 'my_get_function');
-    # same as dispatch_get('my_get_function');
+    # same as dispatch_get('/', 'my_get_function');
         function my_get_function()
         {
             // Show something
@@ -170,7 +170,7 @@ The search is performed with a path given through browser URL:
     http://localhost/my_app/index.php?/my/path
     http://localhost/my_app/?/my/path
 
-When `PUT`,`DELETE` or `PATCH` methods are not supported (like in HTML form submision), you can use the `_method` parameter in `POST` requests: it will override the `POST` method.
+When `PUT`,`DELETE` or `PATCH` methods are not supported (like in HTML form submission), you can use the `_method` parameter in `POST` requests: it will override the `POST` method.
 ```html
     <form action="<?php echo url_for('profile_update'); ?>" method="post">
         <p><input type="hidden" name="_method" value="PUT" id="_method"></p>
@@ -262,10 +262,10 @@ See [php documentation](http://php.net/manual/en/language.pseudo-types.php#langu
     # Object method call, $obj->hello();
     dispatch('/hello', array($obj, 'hello'));
 
-    # Static class method call (As of PHP 5.2.3), MyClass::hello();
+    # Static class method call, MyClass::hello();
     dispatch('/hello', 'MyClass::hello');
 
-    # Using lambda function (As of PHP 5.3.0)
+    # Using a closure
     dispatch('/hello', function(){
       return 'Hello World!';
     });
@@ -315,7 +315,7 @@ You can also define `autoload_controller` function to load controllers in your o
 
 ### Url rewriting ###
 
-Since version 0.4.1, Limonade supports url rewriting.
+FSL supports url rewriting.
 
 If you use Apache, with a `.htaccess` in your app folder
 
@@ -354,7 +354,7 @@ then remember to set explicitly the `option('base_uri')` in your configure() fun
 
     option('base_uri', '/my_app'); # '/' or same as the RewriteBase in your .htaccess
 
-You can access your site with urls like `http://your.new-website.com/my/limonade/path` instead of `http://your.new-website.com/?/my/limonade/path`.
+You can access your site with urls like `http://your.new-website.com/my/fsl/path` instead of `http://your.new-website.com/?/my/fsl/path`.
 
 
 ## Views and templates ##
@@ -385,7 +385,7 @@ Variables may also be passed directly:
             return render('Hello %s!'); // returns 'Hello John!' because params('name') was empty. Else it would have returned params('name') value.
         }
     
-As you can notice, final output is returned by your controller. So remember to explicitly return your view in your controller with the `return` keyword! *(This remark will be particularly helpful for rubyists ;-) )*
+As you can notice, final output is returned by your controller. So remember to explicitly return your view in your controller with the `return` keyword!
     
     
 
@@ -472,11 +472,11 @@ A header specifies the proper HTTP `Content-type` (`application/x-javascript`) a
 
 ### Serving files ###
 
-The `render_file` function can render a file directly to the ouptut buffer.
+The `render_file` function can render a file directly to the output buffer.
     
     render_file(option('public_dir').'foo.jpg');
 
-A header specifies the proper HTTP `Content-type` depending on the file extension, and for text files, encoding setting defined through options (utf8 by default) .
+A header specifies the proper HTTP `Content-type` depending on the file extension, and for text files, encoding setting defined through options (utf8 by default).
 
 Output is temporized so that it can easily handle large files.
 
@@ -534,15 +534,13 @@ Rendered result is:
     </div>
 
 
-The above example is detailed in [this tutorial](http://blog.limonade-php.net/post/438674987/how-to-use-content-for-and-partial).
-
 Use captures with partials, it will help you to organize your views and will keep you from having to copy/paste the same code many times.
 
 ## Hooks and filters ##
 
-Limonade allows the user to define some functions to enhance the Limonade behaviour with its own needs.
+FSL allows the user to define functions to enhance framework behaviour with its own needs.
 
-Some of those, like the `before` hook and the `after` filter are commonly used, and others are only for advanced usage that might require a good comprehension of Limonade internals.
+Some of those, like the `before` hook and the `after` filter are commonly used, and others are only for advanced usage that might require a good comprehension of FSL internals.
 
 
 ### Before ###
@@ -625,7 +623,7 @@ In this example, when url `/` is called, `hello()` is executed and then `autoren
 
 ### Before exit ###
 
-If you define a `before_exit`, it is called at the begining of the stop/exit process (`stop_and_exit` function called automatically at Limonade application termination).
+If you define a `before_exit`, it is called at the beginning of the stop/exit process (`stop_and_exit` function called automatically at FSL application termination).
 
     function before_exit($exit)
     {
@@ -637,7 +635,7 @@ If you define a `before_exit`, it is called at the begining of the stop/exit pro
 
 ### Before sending a header ###
 
-You can define a `before_sending_header` function that will be called before Limonade emits a header() call. This way you can add additional headers:
+You can define a `before_sending_header` function that will be called before FSL emits a header() call. This way you can add additional headers:
 
     dispatch('/style.css', 'css');
     function css()
@@ -660,7 +658,7 @@ __Caution__: Take care not to cause a loop by repeatedly calling `send_header()`
 
 ## Configuration ##
 
-You can define a `configure` that will be executed when application is launched (at the begining of the `run` execution).
+You can define a `configure` that will be executed when application is launched (at the beginning of the `run` execution).
 You can define options inside it, a connection to a database ...
 
     function configure()
@@ -669,11 +667,11 @@ You can define options inside it, a connection to a database ...
         option('env', $env);
         if(option('env') > ENV_PRODUCTION)
     	{
-    		options('dsn', 'sqlite:db/development.db'));
+    		option('dsn', 'sqlite:db/development.db');
     	}
     	else
     	{
-    	    options('dsn', 'sqlite:db/production.db'));
+    	    option('dsn', 'sqlite:db/production.db');
     	}
         $GLOBALS['my_db_connexion'] = new PDO(option('dsn'));
     }
@@ -689,36 +687,32 @@ The `option` function allows you to define and access the options of the applica
     
 If the name of option is not specified, it returns an array of all the options set.
 
-You can use it to manage Limonade options and your own custom options in your application.
+You can use it to manage FSL options and your own custom options in your application.
 
-Default Limonade options have the following values:
+Default FSL options have the following values:
 
     option('root_dir',        $root_dir); // this folder contains your main application file
-    option('base_path',          $base_path);
-    option('base_uri',           $base_uri); // set it manually if you use url_rewriting
-    option('limonade_dir',       dirname(__FILE__).'/'); // this fiolder contains the limonade.php main file
-    option('limonade_views_dir', dirname(__FILE__).'/limonade/views/');
-    option('limonade_public_dir',dirname(__FILE__).'/limonade/public/');
-    option('public_dir',         $root_dir.'/public/');
-    option('views_dir',          $root_dir.'/views/');
-    option('controllers_dir',    $root_dir.'/controllers/');
-    option('lib_dir',            $root_dir.'/lib/');
-    option('error_views_dir',    option('limonade_views_dir'));
-    option('env',                ENV_PRODUCTION);
-    option('debug',              true);
-    option('session',            LIM_SESSION_NAME); // true, false or the name of your session
-    option('encoding',           'utf-8');
-    option('x-sendfile',         0); // 0: disabled, 
-                                     // X-SENDFILE: for Apache and Lighttpd v. >= 1.5,
-                                     // X-LIGHTTPD-SEND-FILE: for Apache and Lighttpd v. < 1.5
+    option('base_path',       $base_path);
+    option('base_uri',        $base_uri); // set it manually if you use url_rewriting
+    option('fsl_dir',         dirname(__FILE__).'/'); // this folder contains the fsl.php main file
+    option('fsl_views_dir',   dirname(__FILE__).'/fsl/views/');
+    option('fsl_public_dir',  dirname(__FILE__).'/fsl/public/');
+    option('public_dir',      $root_dir.'/public/');
+    option('views_dir',       $root_dir.'/views/');
+    option('controllers_dir', $root_dir.'/controllers/');
+    option('lib_dir',         $root_dir.'/lib/');
+    option('error_views_dir', option('fsl_views_dir'));
+    option('env',             ENV_PRODUCTION);
+    option('debug',           true);
+    option('session',         LIM_SESSION_NAME); // true, false or the name of your session
+    option('encoding',        'utf-8');
+    option('x-sendfile',      0); // 0: disabled
 
 ## Sessions ##
 
 Session starts automatically by default. Then you can access session variables like you used to do, with `$_SESSION` array.
 
 You can disable sessions with the `session` option.
-
-⌘ [see snippet example](http://gist.github.com/159327)
 
 ### Flash ###
 
@@ -727,15 +721,13 @@ Flash is a special use of sessions. A flash value will be available only on next
 * `flash($name, $value...)` defines a flash for the next request
 * in views, you can get current flash values with the `$flash` array or `flash_now($name)` function.
 
-⌘ [see snippet example](http://gist.github.com/162680)
-
 ## Helpers ##
 
 See sources or api for more about all available helpers.
 
 ### url_for ###
 
-You can use the `url_for` function for rendering limonade urls. They will be well formed from whatever folder in the document root your application is installed on your web server.
+You can use the `url_for` function for rendering FSL urls. They will be well formed from whatever folder in the document root your application is installed on your web server.
 
     # with option('base_uri', '?')
     url_for('one', 'two', 'three'); # returns ?/one/two/three
@@ -749,10 +741,10 @@ If you want to use url rewriting, you need to explicitly set the `base_uri` opti
 
 ### Halt ###
 
-You can stop immediately the execution of the application with the `halt` function. Errors will be handled by default Limonade error handlers or those you have defined.
+You can stop immediately the execution of the application with the `halt` function. Errors will be handled by default FSL error handlers or those you have defined.
 
     halt(NOT_FOUND);
-    halt("En error occured in my app...");
+    halt("An error occurred in my app...");
 
 ### Not Found ###
 
@@ -800,7 +792,7 @@ Allows you to define and access a layout dedicated to errors.
 
 ### Error handling ###
 
-In addition to the common `NOT_FOUND` and `SERVER_ERROR` error displays, Limonade can redirect precise errors to your own functions.
+In addition to the common `NOT_FOUND` and `SERVER_ERROR` error displays, FSL can redirect precise errors to your own functions.
 
     error(E_USER_WARNING, 'my_notices')
         function my_notices($errno, $errstr, $errfile, $errline)
@@ -824,198 +816,166 @@ In addition to the common `NOT_FOUND` and `SERVER_ERROR` error displays, Limonad
 
 ## Other useful functions ##
 
-Limonade also provides a useful set of functions that can help you managing files, HTTP… For more about those utilities, see the [source code](http://github.com/sofadesign/limonade/blob/master/lib/limonade.php) at section **7. UTILS**.
+FSL also provides a useful set of functions that can help you managing files, HTTP, and more. See the [source code](https://github.com/yesinteractive/fsl/blob/master/lib/fsl.php) at section **7. UTILS**.
 
-## Abstract Functions ##
+---
 
-/**
- * Abstract methods that might be redefined by user
- * Do not include this file in your app: it only aims to provide documentation
- * about those functions.
- * 
- * @package limonade
- * @subpackage abstract
- */
- 
-/**
- * It will be called when app is launched (at the begining of the run function).
- * You can define options inside it, a connection to a database ...
- *
- * @abstract this function might be redefined by user
- * @return void 
- */
-function configure()
-{
-  return;
-}
+# FSL Helper Functions
 
-/**
- * Called in run() just after session start, and before checking request method
- * and output buffer start.  
- *
- * @abstract this function might be redefined by user
- * @return void 
- */
-function initialize()
-{
-  return;
-}
+FSL provides a set of helper functions in `/lib/fsl_functions.php` for common tasks like encryption, sessions, JWT, HTTP calls, and CSRF protection. All functions are available globally once FSL is loaded.
 
-/**
- * Called in run() just after the route matching, in order to load controllers. 
- * If not specfied, the default function is called:
- * 
- * <code>
- * function autoload_controller($callback)
- * {
- *   require_once_dir(option('controllers_dir'));
- * }
- * </code>
- * 
- *
- * @param string $callback the callback defined in matching route
- * @return void
- */
-function autoload_controller($callback)
-{
-  return;
-}
- 
-/**
- * Called before each request.
- * This is very useful to define a default layout or passing common variables
- * to the templates.
- *
- * @abstract this function might be redefined by user
- * @param array() $route array (like returned by {@link route_build()},
- *   with keys "method", "pattern", "names", "callback", "options")
- * @return void 
- */
-function before($route)
-{
-  
-}
- 
-/**
- * An `after` output filter
- * 
- * Called after each request and can apply a transformation to the output
- * (except for `render_file` outputs  which are sent directly to the output buffer).
- *
- * @abstract this function might be redefined by user
- * @param string $output 
- * @param array() $route array (like returned by {@link route_find()},
- *   with keys "method", "pattern", "names", "callback", "params", "options")
- * @return string 
- */
-function after($output, $route)
-{
-  # Call functions...
-  # .. modifies $output...
-  return $output;
-}
- 
-/**
- * Not found error output
- *
- * @abstract this function might be redefined by user
- * @param string $errno 
- * @param string $errstr 
- * @param string $errfile 
- * @param string $errline 
- * @return string "not found" output string
- */
-function not_found($errno, $errstr, $errfile=null, $errline=null)
-{
- 
-}
- 
-/**
- * Server error output
- *
- * @abstract this function might be redefined by user
- * @param string $errno 
- * @param string $errstr 
- * @param string $errfile 
- * @param string $errline 
- * @return string "server error" output string
- */
-function server_error($errno, $errstr, $errfile=null, $errline=null)
-{
-  
-}
- 
-/**
- * Called when a route is not found.
- * 
- * 
- * @abstract this function might be redefined by user
- * @param string $request_method 
- * @param string $request_uri 
- * @return void 
- */
-function route_missing($request_method, $request_uri)
-{
-  halt(NOT_FOUND, "($request_method) $request_uri"); # by default
-}
+## Encryption ##
 
-/**
- * Called before stoppping and exiting application.
- *
- * @abstract this function might be redefined by user
- * @param boolean exit or not
- * @return void 
- */
-function before_exit($exit)
+```php
+// Encrypt a string (uses AES-256-CBC). Key defaults to option('global_encryption_key').
+$encrypted = fsl_encrypt('my secret value');
+$encrypted = fsl_encrypt('my secret value', 'optional-custom-key');
+
+// Decrypt a previously encrypted string
+$plain = fsl_decrypt($encrypted);
+$plain = fsl_decrypt($encrypted, 'optional-custom-key');
+```
+
+Set your encryption key in `config/fsl_config.php`:
+```php
+option('global_encryption_key', 'your-base64-encoded-32-byte-key');
+// Generate a key: php -r "echo base64_encode(random_bytes(32));"
+```
+
+## Sessions ##
+
+FSL sessions store values encrypted using your global encryption key.
+
+```php
+// Start a secure session (httponly, secure, samesite=Strict cookies)
+fsl_init_secure_session();
+
+// Store a session value (optionally with a timeout in seconds)
+fsl_session_set('user_id', '42');
+fsl_session_set('user_id', '42', 300); // expires in 5 minutes
+
+// Retrieve a session value — returns false if missing or timed out
+$userId = fsl_session_check('user_id');
+
+// Destroy a specific session key
+fsl_session_kill('user_id');
+
+// Destroy the entire session
+fsl_session_kill('*');
+```
+
+## XSS Filtering ##
+
+```php
+// Strip XSS threats from a string — use on all user-supplied input
+$clean = fsl_scrub($_POST['comment']);
+```
+
+## Password Hashing ##
+
+```php
+// Create a one-way hash (bcrypt via the Password helper class)
+$hash = fsl_hash_create('my_password');
+
+// Validate a password against a stored hash
+$valid = fsl_hash_validate('my_password', $hash); // true or false
+```
+
+## JWT Tokens ##
+
+```php
+// Encode a payload as a JWT
+$payload = ['user_id' => 42, 'role' => 'admin'];
+$token = fsl_jwt_encode($payload, 'your-secret-key');
+
+// Decode and validate a JWT — returns the payload object or throws on failure
+$decoded = fsl_jwt_decode($token, 'your-secret-key');
+echo $decoded->user_id; // 42
+```
+
+## CSRF Protection ##
+
+```php
+// In your form view — generate and embed a token
+<input type="hidden" name="_csrf_token" value="<?php echo fsl_csrf_token(); ?>">
+
+// In your POST handler — validate the submitted token
+function my_form_handler()
 {
-  
+    if (!fsl_csrf_validate($_POST['_csrf_token'])) {
+        halt(SERVER_ERROR, 'Invalid CSRF token.');
+    }
+    // process form...
 }
+```
 
-/**
- * Rendering prefilter.
- * Useful if you want to transform your views before rendering.
- * The first three parameters are the same as those provided 
- * to the `render` function.
- *
- * @abstract this function might be redefined by user
- * @param string $content_or_func a function, a file in current views dir or a string
- * @param string $layout 
- * @param array $locals 
- * @param array $view_path (by default <code>file_path(option('views_dir'),$content_or_func);</code>)
- * @return array with, in order, $content_or_func, $layout, $locals vars
- *  and the calculated $view_path
- */
-function before_render($content_or_func, $layout, $locals, $view_path)
-{
-  # transform $content_or_func, $layout, $locals or $view_path…
-  return array($content_or_func, $layout, $locals, $view_path);
-}
+## HTTP Client ##
 
+`fsl_curl` makes outbound HTTP requests. Returns an array of `[http_code, curl_info, response_body]`.
 
-/**
- * Called only if rendering $output is_null,
- * like in a controller with no return statement.
- *
- * @abstract this function might be defined by user
- * @param array() $route array (like returned by {@link route_build()},
- *   with keys "method", "pattern", "names", "callback", "options")
- * @return string
- */
-function autorender($route)
-{
-  # process output depending on $route
-  return $output;
-}
+```php
+// Basic GET request
+$response = fsl_curl('https://api.example.com/data');
+$code     = $response[0]; // e.g. 200
+$body     = $response[2]; // response string
 
-/**
- * Called if a header is about to be sent
- *
- * @abstract this function might be defined by user
- * @param string the headers that limonade will send
- * @return void
- */
-function before_sending_header($header)
-{
+// POST with JSON body
+$response = fsl_curl(
+    url: 'https://api.example.com/users',
+    method: 'POST',
+    datatype: 'JSON',
+    postdata: json_encode(['name' => 'Alice'])
+);
 
-}
+// Bearer token auth
+$response = fsl_curl(
+    url: 'https://api.example.com/secure',
+    method: 'GET',
+    datatype: 'JSON',
+    authtype: 'TOKEN',
+    authtoken: 'my-bearer-token'
+);
 
+// Basic auth
+$response = fsl_curl(
+    url: 'https://api.example.com/secure',
+    method: 'GET',
+    authtype: 'BASIC',
+    authuser: 'username',
+    authpassword: 'password'
+);
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$url` | string | Request URL |
+| `$method` | string | `GET`, `POST`, `PUT`, `DELETE` (default: `GET`) |
+| `$datatype` | string\|null | `JSON`, `XML`, `FORM`, or null for `*/*` |
+| `$urlparams` | string\|null | Query string to append to URL |
+| `$postdata` | mixed | POST body data |
+| `$authtype` | string\|null | `BASIC` or `TOKEN` |
+| `$authuser` | string\|null | Basic auth username |
+| `$authpassword` | string\|null | Basic auth password |
+| `$authtoken` | string\|null | Bearer token |
+| `$customheader` | array\|null | Additional headers array |
+
+## Abstract Hook Reference ##
+
+These are the user-definable hook functions FSL will call automatically if you declare them in your app:
+
+| Function | When called | Parameters | Return |
+|----------|-------------|--------------|--------|
+| `configure()` | App startup, before routes | — | void |
+| `initialize()` | After session start, before route matching | — | void |
+| `autoload_controller($callback)` | After route match, to load controller files | `$callback` string | void |
+| `before($route)` | Before each request handler | `$route` array | void |
+| `after($output, $route)` | After each request, can modify output | `$output` string, `$route` array | string |
+| `before_render($content, $layout, $locals, $view_path)` | Before view rendering | view params | array |
+| `autorender($route)` | When controller returns null | `$route` array | string |
+| `not_found($errno, $errstr, $errfile, $errline)` | On 404 error | error details | string |
+| `server_error($errno, $errstr, $errfile, $errline)` | On 500 error | error details | string |
+| `route_missing($method, $uri)` | When no route matches | method + URI | void |
+| `before_exit($exit)` | Before app shutdown | `$exit` bool | void |
+| `before_sending_header($header)` | Before any `header()` call | header string | void |
