@@ -14,11 +14,11 @@ function process_time(){
   function hello_world()
   {
     
-    fsl_session_set('crop','Yummy Limonade');
+    fsl_session_set('crop','Yummy FSL');
     set_or_default('name', params('who'), "everybody");
     $time = number_format( microtime(true) - LIM_START_MICROTIME, 6);
    
-    return html("Session Data Set: Yummy Limonade<BR>". process_time());
+    return html("Session Data Set: Yummy FSL<BR>". process_time());
   }
 
 /*
