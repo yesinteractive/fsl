@@ -37,7 +37,15 @@ function fsl_init_secure_session(): void {
  */
 function fsl_encrypt(string $string, ?string $key = null): string {
     $encryption_key = $key ?? option('global_encryption_key');
-    
+
+    // Warn in development mode if the key is still the shipped demo value
+    if (option('env') === ENV_DEVELOPMENT && $encryption_key === 'X9WpXFpuqmvcJ4pYHgbhKPV8VHQTzqjhN0k6/bAe5rM=') {
+        trigger_error(
+            'FSL: You are using the default demo encryption key. Set a unique key in config/fsl_config.php.',
+            E_USER_WARNING
+        );
+    }
+
     // Validate encryption key
     if ($encryption_key === 'setyourkeyhere') {
         throw new RuntimeException(
@@ -526,6 +534,38 @@ function fsl_curl(
     curl_close($ch);
 
     return $ret = array($code, $info, $output);
+}
+
+
+/*
+ * fsl_csrf_token
+ *
+ * Generates a CSRF token for the current session and returns it.
+ * Store in a hidden form field and validate on POST with fsl_csrf_validate().
+ *
+ * @return string
+ */
+function fsl_csrf_token(): string {
+    if (empty($_SESSION['_fsl_csrf_token'])) {
+        $_SESSION['_fsl_csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['_fsl_csrf_token'];
+}
+
+/*
+ * fsl_csrf_validate
+ *
+ * Validates the CSRF token submitted in a POST request.
+ * Pass the token from $_POST['_csrf_token'] (or your field name).
+ *
+ * @token (string) Token value from the submitted form
+ * @return bool
+ */
+function fsl_csrf_validate(string $token): bool {
+    if (empty($_SESSION['_fsl_csrf_token'])) {
+        return false;
+    }
+    return hash_equals($_SESSION['_fsl_csrf_token'], $token);
 }
 
 
