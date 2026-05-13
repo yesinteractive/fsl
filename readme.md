@@ -1,4 +1,4 @@
-<p align="center"><img src="public/fsl_logo.png" alt="FSL - AI-Native PHP Microframework" width="600"></p>
+<p align="center"><img src="public/fsl-logobox.png" alt="FSL - AI-Native PHP Microframework" width="600"></p>
 
 # FSL (Fresh Squeezed Limonade) - AI Native PHP Micro-Framework
 
