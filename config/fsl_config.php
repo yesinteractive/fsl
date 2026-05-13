@@ -68,6 +68,24 @@ function configure()
         }        
         
   */
+
+  //##############################################
+  //AI / LLM configuration
+  //
+  // Uncomment and set your API keys to enable AI helpers.
+  // Use environment variables to keep secrets out of source control.
+  //
+  //option('anthropic_api_key', getenv('ANTHROPIC_API_KEY'));
+  //option('anthropic_model',   'claude-sonnet-4-6');   // default model
+  //option('anthropic_api_version', '2023-06-01');       // API version header
+  //
+  //option('openai_api_key', getenv('OPENAI_API_KEY'));
+  //option('openai_model',   'gpt-4o');                 // default model
+  //
+  //##############################################
+  //MCP Server configuration
+  //
+  //option('mcp_server_name', 'My FSL MCP Server');     // displayed to AI agents on initialize
  
 }
 
