@@ -1,6 +1,6 @@
 # FSL — PHP Agentic Micro-Framework
 
-Build AI-powered APIs, LLM services, and MCP servers in PHP — no Composer required.
+Build AI-powered APIs, LLM services, and MCP servers in PHP — no Composer required. FSL is for PHP developers who want to expose existing PHP code as AI-callable APIs and MCP tools without adopting Laravel, Symfony, Node, or Composer.
 
 **Requirements:** PHP 8.0+
 
