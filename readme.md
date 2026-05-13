@@ -1,6 +1,8 @@
-# FSL (Fresh Squeezed Limonade) — AI Native PHP Micro-Framework
+<p align="center"><img src="public/fsl_logo.png" alt="FSL - AI-Native PHP Microframework" width="600"></p>
 
-Build AI-powered APIs, LLM services, and MCP servers in PHP — no Composer required. FSL is for PHP developers who want to expose existing PHP code as AI-callable APIs and MCP tools without adopting Laravel, Symfony, Node, or Composer.
+# FSL (Fresh Squeezed Limonade) - AI Native PHP Micro-Framework
+
+Build AI-powered APIs, LLM services, and MCP servers in PHP - no Composer required. FSL is for PHP developers who want to expose existing PHP code as AI-callable APIs and MCP tools without adopting Laravel, Symfony, Node, or Composer.
 
 **Requirements:** PHP 8.0+
 
@@ -32,12 +34,12 @@ Point your web server at the project root, or run `php -S localhost:8080` for lo
 
 ## Why FSL?
 
-- **AI-native** — built-in Anthropic and OpenAI helpers; LLM calls in one line
-- **MCP-ready** — expose any function as an MCP tool in ~10 lines; spec-compliant JSON-RPC 2.0
-- **API-first** — native JSON responses, HTTP method routing, status code helpers
-- **Minimal footprint** — one `require`, no Composer, no build step
-- **Built-in security** — AES-256-CBC encryption, encrypted sessions, CSRF, JWT
-- **HTTP client included** — `fsl_curl()` covers all auth patterns for calling external APIs and agent tool backends
+- **AI-native** - built-in Anthropic and OpenAI helpers; LLM calls in one line
+- **MCP-ready** - expose any function as an MCP tool in ~10 lines; spec-compliant JSON-RPC 2.0
+- **API-first** - native JSON responses, HTTP method routing, status code helpers
+- **Minimal footprint** - one `require`, no Composer, no build step
+- **Built-in security** - AES-256-CBC encryption, encrypted sessions, CSRF, JWT
+- **HTTP client included** - `fsl_curl()` covers all auth patterns for calling external APIs and agent tool backends
 
 ---
 
@@ -204,22 +206,22 @@ No Composer, no dependencies. Drop the files into your project and `require 'lib
 
 ```
 fsl/
-├── lib/
-│   ├── fsl.php               # Core framework — require this
-│   ├── fsl_functions.php     # Helper functions (encryption, sessions, curl, etc.)
-│   ├── fsl_ai_functions.php  # AI/LLM helpers (Anthropic, OpenAI)
-│   ├── fsl_mcp_functions.php # MCP server support
-│   └── jwt_helper.php        # JWT encode/decode
-├── config/
-│   └── fsl_config.php        # App configuration (configure() function)
-├── controllers/
-│   └── fsl_controllers.php   # Route handlers
-├── views/
-│   └── *.php                 # HTML templates
-└── index.php                 # Entry point
++-- lib/
+|   +-- fsl.php               # Core framework - require this
+|   +-- fsl_functions.php     # Helper functions (encryption, sessions, curl, etc.)
+|   +-- fsl_ai_functions.php  # AI/LLM helpers (Anthropic, OpenAI)
+|   +-- fsl_mcp_functions.php # MCP server support
+|   +-- jwt_helper.php        # JWT encode/decode
++-- config/
+|   +-- fsl_config.php        # App configuration (configure() function)
++-- controllers/
+|   +-- fsl_controllers.php   # Route handlers
++-- views/
+|   +-- *.php                 # HTML templates
++-- index.php                 # Entry point
 ```
 
-All files in `lib/` are auto-loaded — drop a new `.php` file there and its functions are immediately available.
+All files in `lib/` are auto-loaded - drop a new `.php` file there and its functions are immediately available.
 
 ---
 
@@ -251,7 +253,7 @@ php -r "echo base64_encode(random_bytes(32));"
 | `base_uri` | `/` | URL prefix when app is in a subdirectory |
 | `session` | `null` | Session name; `null` disables sessions |
 | `fsl_session_length` | `300` | Session lifetime in seconds |
-| `global_encryption_key` | — | Base64 AES-256 key for `fsl_encrypt`/`fsl_session_set` |
+| `global_encryption_key` | - | Base64 AES-256 key for `fsl_encrypt`/`fsl_session_set` |
 | `gzip` | `false` | Enable gzip output compression |
 | `views_dir` | `views/` | Directory for HTML templates |
 | `controllers_dir` | `controllers/` | Directory for controller files |
@@ -424,11 +426,11 @@ return render_file('/path/to/file.html'); // send any file as HTML response
 
 | Hook | When it runs |
 |------|--------------|
-| `configure()` | Once at startup — set options, open DB connections |
-| `initialize()` | After configure, before routing — app-level setup |
-| `before()` | Before every request — auth checks, logging |
+| `configure()` | Once at startup - set options, open DB connections |
+| `initialize()` | After configure, before routing - app-level setup |
+| `before()` | Before every request - auth checks, logging |
 | `after()` | After every request |
-| `before_render($content)` | Before rendering output — modify content |
+| `before_render($content)` | Before rendering output - modify content |
 | `autorender($action_result)` | Custom rendering logic |
 | `before_exit()` | Just before script exits |
 | `before_sending_header($header)` | Intercept headers before sending |
@@ -537,11 +539,11 @@ Makes outbound HTTP requests. Returns `[http_code, curl_info, response_body]`.
 |-----------|------|---------|-------------|
 | `$url` | string | required | Request URL |
 | `$method` | string | `'GET'` | `GET`, `POST`, `PUT`, `DELETE` |
-| `$datatype` | string\|null | `null` | `'JSON'`, `'XML'`, `'FORM'`, or `null` for `*/*` |
-| `$urlparams` | string\|null | `null` | Query string appended to URL |
+| `$datatype` | string|null | `null` | `'JSON'`, `'XML'`, `'FORM'`, or `null` for `*/*` |
+| `$urlparams` | string|null | `null` | Query string appended to URL |
 | `$postdata` | mixed | `null` | POST body |
-| `$authtype` | string\|null | `null` | `'BASIC'` or `'TOKEN'` |
-| `$authuser` | string\|null | `null` | Basic auth username |
-| `$authpassword` | string\|null | `null` | Basic auth password |
-| `$authtoken` | string\|null | `null` | Bearer token |
-| `$customheader` | array\|null | `null` | Additional headers |
+| `$authtype` | string|null | `null` | `'BASIC'` or `'TOKEN'` |
+| `$authuser` | string|null | `null` | Basic auth username |
+| `$authpassword` | string|null | `null` | Basic auth password |
+| `$authtoken` | string|null | `null` | Bearer token |
+| `$customheader` | array|null | `null` | Additional headers |
