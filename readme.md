@@ -1,4 +1,4 @@
-# FSL — PHP Agentic Micro-Framework
+# FSL (Fresh Squeezed Limonade) — AI Native PHP Micro-Framework
 
 Build AI-powered APIs, LLM services, and MCP servers in PHP — no Composer required. FSL is for PHP developers who want to expose existing PHP code as AI-callable APIs and MCP tools without adopting Laravel, Symfony, Node, or Composer.
 
